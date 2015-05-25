@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html ng-app="App" ng-controller="GigaSpaceBrowserController">
+<head>
+    <title>logb {{ config.internal.appVersion }}</title>
+    <script type="text/javascript" src="js/log.js"></script>
+    <script type="text/javascript" src="js/angular.min.js"></script>
+    <script type="text/javascript" src="js/engine.js"></script>
+
+    <!--<link rel="stylesheet" href="css/style.css">-->
+</head>
+<body>
+
+<input type="text" ng-model="filter">
+
+<ul>
+    <li ng-repeat="log in logs | orderBy : log.lastModified : true | filter : filter">
+        <a href="javascript:void(0);" ng-click="">{{ log.name }}</a>
+    </li>
+</ul>
+
+</body>
+</html>
+
