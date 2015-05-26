@@ -6,11 +6,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
 
 public class ListServlet extends HttpServlet {
@@ -23,8 +20,6 @@ public class ListServlet extends HttpServlet {
 
     private final Gson gson = new Gson();
 
-    private final File directory = new File("/Users/terma/Projects/logb");
-
     @Override
     protected void doGet(final HttpServletRequest request, final HttpServletResponse response)
             throws ServletException, IOException {
@@ -35,38 +30,17 @@ public class ListServlet extends HttpServlet {
     protected void doPost(final HttpServletRequest request, final HttpServletResponse response)
             throws ServletException, IOException {
         LOGGER.info("Start list request...");
-//        final T executeRequest = gson.fromJson(getRequestBody(request), Object.class);
         response.setContentType(JSON_CONTENT_TYPE);
 
         final PrintWriter writer = response.getWriter();
         try {
-            writer.append(gson.toJson(toList(".", directory.listFiles())));
+            writer.append(gson.toJson(new LogSuperService().getLogs("/Users/terma/Projects/logb")));
         } catch (final Throwable exception) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             writer.append(ERROR_DELIMITER).append('\n');
             writer.append(gson.toJson(exception));
         }
         LOGGER.info("Finish request");
-    }
-
-    private static List<ListItem> toList(final String path, final File[] files) {
-        List<ListItem> result = new ArrayList<>();
-        for (File file : files) {
-            if (file.isDirectory()) {
-                result.addAll(toList(path + "/" + file.getName(), file.listFiles()));
-            } else {
-                result.add(fileToItem(path, file));
-            }
-        }
-        return result;
-    }
-
-    private static ListItem fileToItem(final String path, final File file) {
-        ListItem listItem = new ListItem();
-        listItem.name = path + "/" + file.getName();
-        listItem.length = file.length();
-        listItem.lastModified = file.lastModified();
-        return listItem;
     }
 
 }

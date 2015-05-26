@@ -1,6 +1,8 @@
 package com.github.terma.logb;
 
-public class LogRequest {
+import java.io.Serializable;
+
+public class LogRequest implements Serializable {
 
     public String name;
     public String server;

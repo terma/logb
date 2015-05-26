@@ -19,6 +19,10 @@ public class Logb {
         this.file = new RandomAccessFile(file, "r");
     }
 
+    public Logb(String file) throws FileNotFoundException {
+        this.file = new RandomAccessFile(file, "r");
+    }
+
     public long getPosition() {
         try {
             return file.getFilePointer();

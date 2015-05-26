@@ -6,7 +6,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -17,8 +16,6 @@ public class LogServlet extends HttpServlet {
     private static final String ERROR_DELIMITER = "/* --- JSON STREAM --- ERROR DELIMITER --- */";
 
     private final Gson gson = new Gson();
-
-    private final File directory = new File("/Users/terma/Projects/logb");
 
     @Override
     protected void doGet(final HttpServletRequest request, final HttpServletResponse response)
@@ -34,9 +31,8 @@ public class LogServlet extends HttpServlet {
 
         final PrintWriter writer = response.getWriter();
         try {
-            Logb logb = new Logb(new File(directory, logRequest.name));
-            writer.append(gson.toJson(logb.getPiece(logRequest.start, logRequest.length)));
-            logb.close();
+            LogSuperService logSuperService = new LogSuperService();
+            writer.append(gson.toJson(logSuperService.getPiece(logRequest)));
         } catch (final Throwable exception) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             writer.append(ERROR_DELIMITER).append('\n');

@@ -1,6 +1,8 @@
 package com.github.terma.logb;
 
-public class ListItem {
+import java.io.Serializable;
+
+public class ListItem implements Serializable {
 
     public String name;
     public long length;

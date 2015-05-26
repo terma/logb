@@ -1,6 +1,8 @@
 package com.github.terma.logb;
 
-public class FilePiece {
+import java.io.Serializable;
+
+public class FilePiece implements Serializable {
 
     public final long start;
     public final long length;
