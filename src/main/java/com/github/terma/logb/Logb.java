@@ -1,9 +1,6 @@
 package com.github.terma.logb;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -16,6 +13,10 @@ public class Logb {
 
     public Logb(Path path) throws FileNotFoundException {
         this.file = new RandomAccessFile(path.toFile(), "r");
+    }
+
+    public Logb(File file) throws FileNotFoundException {
+        this.file = new RandomAccessFile(file, "r");
     }
 
     public long getPosition() {
@@ -40,6 +41,17 @@ public class Logb {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public FilePiece getPiece(long start, int length) throws IOException {
+//        final long length = file.length();
+//        if (start >= length) return new FilePiece(start, start, "");
+
+        file.seek(start);
+        byte[] buffer = new byte[length];
+        int done = file.read(buffer);
+        int realLength = done < 0 ? 0 : done;
+        return new FilePiece(start, realLength, new String(buffer, 0, realLength, charset));
     }
 
     public List<String> getLines(int lines) throws IOException {
@@ -85,6 +97,14 @@ public class Logb {
         }
 
         return result;
+    }
+
+    public void close() {
+        try {
+            file.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

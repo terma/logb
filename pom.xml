@@ -55,13 +55,13 @@
                 <!--<configuration>-->
                     <!--<systemProperties>-->
                         <!--<systemProperty>-->
-                            <!--<name>gigaspaceSqlConsoleConfig</name>-->
-                            <!--<value>file:src/test/resources/no-converters-config.json</value>-->
+                            <!--<name>java.util.logging.config.file</name>-->
+                            <!--<value>/Users/terma/Projects/logb/src/main/resources/log.properties</value>-->
                         <!--</systemProperty>-->
                     <!--</systemProperties>-->
-                    <!--<webApp>-->
-                        <!--<contextPath>/gs-sql-console</contextPath>-->
-                    <!--</webApp>-->
+                    <!--&lt;!&ndash;<webApp>&ndash;&gt;-->
+                        <!--&lt;!&ndash;<contextPath>/gs-sql-console</contextPath>&ndash;&gt;-->
+                    <!--&lt;!&ndash;</webApp>&ndash;&gt;-->
                 <!--</configuration>-->
             </plugin>
         </plugins>

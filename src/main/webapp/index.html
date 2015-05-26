@@ -10,13 +10,19 @@
 </head>
 <body>
 
-<input type="text" ng-model="filter">
+<div style="position: absolute; right: 10px; top: 10px;">
+    <input type="text" ng-model="filter">
 
-<ul>
-    <li ng-repeat="log in logs | orderBy : log.lastModified : true | filter : filter">
-        <a href="javascript:void(0);" ng-click="">{{ log.name }}</a>
-    </li>
-</ul>
+    <ul>
+        <li ng-repeat="log in logs | orderBy : log.lastModified : true | filter : filter">
+            <a href="javascript:void(0);" ng-click="selectLog(log)">{{ log.name }}</a>
+        </li>
+    </ul>
+</div>
+
+<a href="javascript:void(0);" ng-show="log.start > 0" ng-click="showPrevious();">Show Previous</a>
+
+<pre id="log" style="font-family: courier new, courier, monospace"></pre>
 
 </body>
 </html>

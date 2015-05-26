@@ -9,13 +9,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
 
-public class ListServlet extends HttpServlet {
-
-    private static final Logger LOGGER = Logger.getLogger(ListServlet.class.getName());
+public class LogServlet extends HttpServlet {
 
     private static final String JSON_CONTENT_TYPE = "application/json";
 
@@ -34,39 +29,31 @@ public class ListServlet extends HttpServlet {
     @Override
     protected void doPost(final HttpServletRequest request, final HttpServletResponse response)
             throws ServletException, IOException {
-        LOGGER.info("Start list request...");
-//        final T executeRequest = gson.fromJson(getRequestBody(request), Object.class);
+        final LogRequest logRequest = gson.fromJson(getRequestBody(request), LogRequest.class);
         response.setContentType(JSON_CONTENT_TYPE);
 
         final PrintWriter writer = response.getWriter();
         try {
-            writer.append(gson.toJson(toList(".", directory.listFiles())));
+            Logb logb = new Logb(new File(directory, logRequest.name));
+            writer.append(gson.toJson(logb.getPiece(logRequest.start, logRequest.length)));
+            logb.close();
         } catch (final Throwable exception) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             writer.append(ERROR_DELIMITER).append('\n');
             writer.append(gson.toJson(exception));
         }
-        LOGGER.info("Finish request");
     }
 
-    private static List<ListItem> toList(final String path, final File[] files) {
-        List<ListItem> result = new ArrayList<>();
-        for (File file : files) {
-            if (file.isDirectory()) {
-                result.addAll(toList(path + "/" + file.getName(), file.listFiles()));
-            } else {
-                result.add(fileToItem(path, file));
-            }
+    private static String getRequestBody(final HttpServletRequest request) throws IOException {
+        final StringBuilder requestBody = new StringBuilder();
+
+        while (true) {
+            String line = request.getReader().readLine();
+            if (line == null) break;
+            else requestBody.append(line).append('\n');
         }
-        return result;
-    }
 
-    private static ListItem fileToItem(final String path, final File file) {
-        ListItem listItem = new ListItem();
-        listItem.name = path + "/" + file.getName();
-        listItem.length = file.length();
-        listItem.lastModified = file.lastModified();
-        return listItem;
+        return requestBody.toString();
     }
 
 }

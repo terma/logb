@@ -81,6 +81,24 @@ public class LogbTest {
     }
 
     @Test
+    public void shouldReturnEmptyPieceIfStartMoreLength() throws Exception {
+        Logb logb = new Logb(tempFile);
+
+        FileUtils.fileWrite(tempFile.toFile().getAbsolutePath(), "aaa");
+
+        assertThat(logb.getPiece(10, 12), equalTo(new FilePiece(10, 0, "")));
+    }
+
+    @Test
+    public void shouldReturnEmptyPieceIfLengthMoreReal() throws Exception {
+        Logb logb = new Logb(tempFile);
+
+        FileUtils.fileWrite(tempFile.toFile().getAbsolutePath(), "aaa");
+
+        assertThat(logb.getPiece(1, 12), equalTo(new FilePiece(1, 2, "aa")));
+    }
+
+    @Test
     public void shouldGetAllLinesIfRequestMore() throws Exception {
         Logb logb = new Logb(tempFile);
 
