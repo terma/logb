@@ -26,30 +26,17 @@ public class LogServlet extends HttpServlet {
     @Override
     protected void doPost(final HttpServletRequest request, final HttpServletResponse response)
             throws ServletException, IOException {
-        final LogRequest logRequest = gson.fromJson(getRequestBody(request), LogRequest.class);
+        final LogRequest logRequest = gson.fromJson(RequestUtils.getRequestBody(request), LogRequest.class);
         response.setContentType(JSON_CONTENT_TYPE);
 
         final PrintWriter writer = response.getWriter();
         try {
-            LogSuperService logSuperService = new LogSuperService();
-            writer.append(gson.toJson(logSuperService.getPiece(logRequest)));
+            writer.append(gson.toJson(new DispatcherService().piece(logRequest)));
         } catch (final Throwable exception) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             writer.append(ERROR_DELIMITER).append('\n');
             writer.append(gson.toJson(exception));
         }
-    }
-
-    private static String getRequestBody(final HttpServletRequest request) throws IOException {
-        final StringBuilder requestBody = new StringBuilder();
-
-        while (true) {
-            String line = request.getReader().readLine();
-            if (line == null) break;
-            else requestBody.append(line).append('\n');
-        }
-
-        return requestBody.toString();
     }
 
 }

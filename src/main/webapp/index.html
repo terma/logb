@@ -11,11 +11,17 @@
 <body>
 
 <div style="position: absolute; right: 10px; top: 10px;">
+    <select ng-model="selectedAppName">
+        <option ng-repeat="app in apps | orderBy : app.name">{{ app.name }}</option>
+    </select>
+
+    <p></p>
+
     <input type="text" ng-model="filter">
 
     <ul>
         <li ng-repeat="log in logs | orderBy : log.lastModified : true | filter : filter">
-            <a href="javascript:void(0);" ng-click="selectLog(log)">{{ log.name }}</a>
+            <a href="javascript:void(0);" ng-click="selectLog(log)">{{ log.file }}</a>
         </li>
     </ul>
 </div>

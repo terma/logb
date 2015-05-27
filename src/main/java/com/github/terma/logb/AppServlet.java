@@ -1,5 +1,6 @@
 package com.github.terma.logb;
 
+import com.github.terma.logb.config.ConfigService;
 import com.google.gson.Gson;
 
 import javax.servlet.ServletException;
@@ -8,11 +9,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.logging.Logger;
 
-public class ListServlet extends HttpServlet {
-
-    private static final Logger LOGGER = Logger.getLogger(ListServlet.class.getName());
+public class AppServlet extends HttpServlet {
 
     private static final String JSON_CONTENT_TYPE = "application/json";
 
@@ -29,20 +27,16 @@ public class ListServlet extends HttpServlet {
     @Override
     protected void doPost(final HttpServletRequest request, final HttpServletResponse response)
             throws ServletException, IOException {
-        LOGGER.info("Start list request...");
         response.setContentType(JSON_CONTENT_TYPE);
-
-        final ListRequest listRequest = gson.fromJson(RequestUtils.getRequestBody(request), ListRequest.class);
 
         final PrintWriter writer = response.getWriter();
         try {
-            writer.append(gson.toJson(new DispatcherService().list(listRequest.app)));
+            writer.append(gson.toJson(ConfigService.get()));
         } catch (final Throwable exception) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             writer.append(ERROR_DELIMITER).append('\n');
             writer.append(gson.toJson(exception));
         }
-        LOGGER.info("Finish request");
     }
 
 }

@@ -8,12 +8,10 @@ import java.util.List;
 
 public class LogbService implements LogbRemote {
 
-    private final File directory = new File("/Users/terma/Projects/logb");
-
     @Override
-    public FilePiece getPiece(final LogRequest logRequest) throws RemoteException {
+    public FilePiece getPiece(LogRequest logRequest) throws RemoteException {
         try {
-            Logb logb = new Logb(new File(directory, logRequest.name));
+            Logb logb = new Logb(logRequest.file);
             FilePiece piece = logb.getPiece(logRequest.start, logRequest.length);
             logb.close();
             return piece;
@@ -23,25 +21,28 @@ public class LogbService implements LogbRemote {
     }
 
     @Override
-    public List<ListItem> getLogs(String directory) throws RemoteException {
-        return toList(".", new File(directory).listFiles());
+    public List<ListItem> list(final String host, List<String> files) throws RemoteException {
+        List<ListItem> result = new ArrayList<>();
+        for (String file : files) result.addAll(toList(host, new File(file).listFiles()));
+        return result;
     }
 
-    private static List<ListItem> toList(final String path, final File[] files) {
-        List<ListItem> result = new ArrayList<>();
-        for (File file : files) {
+    private static List<ListItem> toList(final String host, final File[] files) {
+        final List<ListItem> result = new ArrayList<>();
+        for (final File file : files) {
             if (file.isDirectory()) {
-                result.addAll(toList(path + "/" + file.getName(), file.listFiles()));
+                result.addAll(toList(host, file.listFiles()));
             } else {
-                result.add(fileToItem(path, file));
+                result.add(fileToItem(host, file));
             }
         }
         return result;
     }
 
-    private static ListItem fileToItem(final String path, final File file) {
+    private static ListItem fileToItem(final String host, final File file) {
         ListItem listItem = new ListItem();
-        listItem.name = path + "/" + file.getName();
+        listItem.host = host;
+        listItem.file = file.getAbsolutePath();
         listItem.length = file.length();
         listItem.lastModified = file.lastModified();
         return listItem;

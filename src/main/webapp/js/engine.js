@@ -4,35 +4,48 @@ App.controller("GigaSpaceBrowserController", [
     "$scope", "$http", "$interval",
     function ($scope, $http, $interval) {
 
-        $scope.selectedLogName = undefined;
+        $scope.selectedLog = undefined;
+        $scope.selectedAppName = undefined;
+        $scope.selectedApp = undefined;
+
+        $scope.$watch("selectedAppName", function () {
+            $scope.selectedLogName = undefined;
+            $scope.selectedLog = undefined;
+            var element = document.getElementById("log");
+            while (element.firstChild) {
+                element.removeChild(element.firstChild);
+            }
+            $scope.selectedApp = findApp($scope.selectedAppName);
+            $scope.check();
+        });
+
+        function findApp(name) {
+            if ($scope.apps) {
+                for (var i = 0; i < $scope.apps.length; i++) {
+                    if ($scope.apps[i].name === name) {
+                        return $scope.apps[i];
+                    }
+                }
+            }
+            return undefined;
+        }
 
         $scope.selectLog = function (log) {
-            $scope.selectedLogName = log.name;
+            $scope.selectedLog = log;
             $scope.log = {start: undefined, length: undefined};
             $scope.tailLog()
         };
 
-        function findSelectedLog() {
-            if (!$scope.selectedLogName) return undefined;
-
-            for (var i = 0; i < $scope.logs.length; i++) {
-                if ($scope.logs[i].name === $scope.selectedLogName) {
-                    return $scope.logs[i];
-                }
-            }
-
-            return undefined;
-        }
-
         $scope.showPrevious = function () {
-            var selectedLog = findSelectedLog();
-            if (!selectedLog) return undefined;
+            if (!$scope.selectedLog) return;
 
             $http({
                 url: "log",
                 method: "POST",
                 data: {
-                    name: selectedLog.name,
+                    app: $scope.selectedAppName,
+                    host: $scope.selectedLog.host,
+                    file: $scope.selectedLog.file,
                     start: Math.max($scope.log.start - 1000, 0),
                     length: $scope.log.start
                 },
@@ -54,12 +67,11 @@ App.controller("GigaSpaceBrowserController", [
         };
 
         $scope.tailLog = function () {
-            var selectedLog = findSelectedLog();
-            if (!selectedLog) return undefined;
+            if (!$scope.selectedLog) return;
 
             if ($scope.log.start == undefined) {
                 $scope.log.length = 0;
-                $scope.log.start = Math.max(0, selectedLog.length - 1000);
+                $scope.log.start = Math.max(0, $scope.selectedLog.length - 1000);
                 log.log("init log");
                 log.log($scope.log);
             }
@@ -68,7 +80,9 @@ App.controller("GigaSpaceBrowserController", [
                 url: "log",
                 method: "POST",
                 data: {
-                    name: selectedLog.name,
+                    app: $scope.selectedAppName,
+                    host: $scope.selectedLog.host,
+                    file: $scope.selectedLog.file,
                     start: $scope.log.start + $scope.log.length,
                     length: 1000
                 },
@@ -93,14 +107,20 @@ App.controller("GigaSpaceBrowserController", [
             });
         };
 
-        $scope.logs = function () {
+        $scope.check = function () {
+            if (!$scope.selectedApp) {
+                log.log("check - nothing todo");
+                return;
+            }
+
+            log.log("check - check");
             $scope.tailLog();
 
             $http({
                 url: "list",
-                //method: "POST",
+                method: "post",
+                data: {app: $scope.selectedApp.name},
                 headers: {"Content-Type": "application/json"}
-                //transformResponse: transformResponse
             }).success(function (res) {
                 $scope.logs = res;
             }).error(function (res) {
@@ -108,9 +128,20 @@ App.controller("GigaSpaceBrowserController", [
             });
         };
 
-        $scope.logs();
+        $scope.loadConfig = function () {
+            $http({
+                url: "app",
+                headers: {"Content-Type": "application/json"}
+            }).success(function (res) {
+                $scope.apps = res.apps;
+                $scope.check();
+                $interval($scope.check, 5000);
+            }).error(function (res) {
+                alert("OPA!");
+            });
+        };
 
-        $interval($scope.logs, 5000);
+        $scope.loadConfig();
     }]);
 
 Array.prototype.mkString = function (delimiter) {

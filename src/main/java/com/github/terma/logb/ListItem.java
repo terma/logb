@@ -4,7 +4,8 @@ import java.io.Serializable;
 
 public class ListItem implements Serializable {
 
-    public String name;
+    public String host;
+    public String file;
     public long length;
     public long lastModified;
 
