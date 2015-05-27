@@ -4,6 +4,7 @@ App.controller("GigaSpaceBrowserController", [
     "$scope", "$http", "$interval",
     function ($scope, $http, $interval) {
 
+        $scope.view = undefined;
         $scope.selectedLog = undefined;
         $scope.selectedAppName = undefined;
         $scope.selectedApp = undefined;
@@ -31,6 +32,7 @@ App.controller("GigaSpaceBrowserController", [
         }
 
         $scope.selectLog = function (log) {
+            $scope.view = "log";
             $scope.selectedLog = log;
             $scope.log = {start: undefined, length: undefined};
             $scope.tailLog()
@@ -123,6 +125,9 @@ App.controller("GigaSpaceBrowserController", [
                 headers: {"Content-Type": "application/json"}
             }).success(function (res) {
                 $scope.logs = res;
+                for (var i = 0; i < $scope.logs.length; i++) {
+                    $scope.logs[i].lastModifiedDate = new Date($scope.logs[i].lastModified);
+                }
             }).error(function (res) {
                 $scope.logs = [{name: "can't connect"}];
             });
@@ -133,6 +138,7 @@ App.controller("GigaSpaceBrowserController", [
                 url: "app",
                 headers: {"Content-Type": "application/json"}
             }).success(function (res) {
+                $scope.view = "logs";
                 $scope.apps = res.apps;
                 $scope.check();
                 $interval($scope.check, 5000);
