@@ -20,6 +20,8 @@ App.controller("GigaSpaceBrowserController", [
     "$scope", "$http", "$interval",
     function ($scope, $http, $interval) {
 
+        var PIECE_SIZE = 10000;
+
         $scope.view = undefined;
         $scope.selectedLog = undefined;
         $scope.selectedAppName = undefined;
@@ -64,7 +66,7 @@ App.controller("GigaSpaceBrowserController", [
                     app: $scope.selectedAppName,
                     host: $scope.selectedLog.host,
                     file: $scope.selectedLog.file,
-                    start: Math.max($scope.log.start - 1000, 0),
+                    start: Math.max($scope.log.start - PIECE_SIZE, 0),
                     length: $scope.log.start
                 },
                 headers: {"Content-Type": "application/json"}
@@ -89,7 +91,7 @@ App.controller("GigaSpaceBrowserController", [
 
             if ($scope.log.start == undefined) {
                 $scope.log.length = 0;
-                $scope.log.start = Math.max(0, $scope.selectedLog.length - 1000);
+                $scope.log.start = Math.max(0, $scope.selectedLog.length - PIECE_SIZE);
                 log.log("init log");
                 log.log($scope.log);
             }
@@ -102,7 +104,7 @@ App.controller("GigaSpaceBrowserController", [
                     host: $scope.selectedLog.host,
                     file: $scope.selectedLog.file,
                     start: $scope.log.start + $scope.log.length,
-                    length: 1000
+                    length: PIECE_SIZE
                 },
                 headers: {"Content-Type": "application/json"}
                 //transformResponse: transformResponse

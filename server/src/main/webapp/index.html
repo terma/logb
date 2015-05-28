@@ -30,6 +30,9 @@
             <td><a href="javascript:void(0);" ng-click="selectLog(log)">{{ log.file }}</a></td>
             <td>{{ log.lastModifiedDate }}</td>
         </tr>
+        <tr ng-show="!logs.length">
+            <td colspan="3">No logs</td>
+        </tr>
     </table>
 </div>
 
