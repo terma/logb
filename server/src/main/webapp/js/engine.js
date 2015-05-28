@@ -133,22 +133,24 @@ App.controller("GigaSpaceBrowserController", [
                 return;
             }
 
-            log.log("check - check");
-            $scope.tailLog();
-
-            $http({
-                url: "list",
-                method: "post",
-                data: {app: $scope.selectedApp.name},
-                headers: {"Content-Type": "application/json"}
-            }).success(function (res) {
-                $scope.logs = res;
-                for (var i = 0; i < $scope.logs.length; i++) {
-                    $scope.logs[i].lastModifiedDate = new Date($scope.logs[i].lastModified);
-                }
-            }).error(function (res) {
-                $scope.logs = [{name: "can't connect"}];
-            });
+            if ($scope.view === "log") {
+                log.log("check - check");
+                $scope.tailLog();
+            } else {
+                $http({
+                    url: "list",
+                    method: "post",
+                    data: {app: $scope.selectedApp.name},
+                    headers: {"Content-Type": "application/json"}
+                }).success(function (res) {
+                    $scope.logs = res;
+                    for (var i = 0; i < $scope.logs.length; i++) {
+                        $scope.logs[i].lastModifiedDate = new Date(parseInt($scope.logs[i].lastModified));
+                    }
+                }).error(function (res) {
+                    $scope.logs = [{name: "can't connect"}];
+                });
+            }
         };
 
         $scope.loadConfig = function () {
