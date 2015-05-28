@@ -1,0 +1,11 @@
+body {
+    margin: 0;
+    padding: 1em;
+    font-family: Menlo, Monaco, Consolas, 'Lucida Console', courier, monospace;
+    font-size: 11pt;
+}
+
+input {
+    font-family: inherit;
+    font-size: inherit;
+}
