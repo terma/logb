@@ -52,7 +52,7 @@ public class ListServlet extends HttpServlet {
 
         final PrintWriter writer = response.getWriter();
         try {
-            writer.append(gson.toJson(new DispatcherService().list(listRequest.app)));
+            writer.append(gson.toJson(DispatcherService.INSTANCE.list(listRequest.app, LogServlet.getNodeJar(this))));
         } catch (final Throwable exception) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             writer.append(ERROR_DELIMITER).append('\n');

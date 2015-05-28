@@ -26,7 +26,9 @@ import java.util.logging.Logger;
 
 public class NodeRunner {
 
-    public static final int RMI_REGISTRY_NODE_PORT = 8998;
+    public static final String NODE_LOGB_SERVICE_NAME = "logb";
+
+    private static final int RMI_REGISTRY_NODE_PORT = 8998;
 
     private static final Logger LOGGER = Logger.getLogger(NodeRunner.class.getName());
 
@@ -36,7 +38,7 @@ public class NodeRunner {
             LogbRemote logbService = (LogbRemote) UnicastRemoteObject.exportObject(new LogbService(), 0);
 
             Registry registry = LocateRegistry.createRegistry(RMI_REGISTRY_NODE_PORT);
-            registry.rebind("logb", logbService);
+            registry.rebind(NODE_LOGB_SERVICE_NAME, logbService);
             LOGGER.info("Node successfully started");
             FileOutputStream fileOutputStream = new FileOutputStream("logb-node.port");
             fileOutputStream.write(String.valueOf(RMI_REGISTRY_NODE_PORT).getBytes());

@@ -21,20 +21,25 @@ import com.github.terma.logb.config.ConfigApp;
 import com.github.terma.logb.config.ConfigServer;
 import com.github.terma.logb.config.ConfigService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.io.InputStream;
+import java.util.*;
 
 public class DispatcherService {
 
-    private final Config config = ConfigService.get();
+    public static final DispatcherService INSTANCE = new DispatcherService();
 
-    public List<ListItem> list(final String appName) {
+    private final Config config = ConfigService.get();
+    private final Map<String, ServerService> services = new HashMap<>();
+
+    private DispatcherService() {
+    }
+
+    public List<ListItem> list(final String appName, final InputStream jar) {
         final ConfigApp app = findApp(appName);
         final List<ListItem> result = new ArrayList<>();
-        for (ConfigServer server : app.servers) {
+        for (final ConfigServer server : app.servers) {
             if (server.host != null) {
-                result.addAll(new ServerService(server.host).list(server.files));
+                result.addAll(getService(server.host, jar).list(server.files));
             } else {
                 result.addAll(new LocalService().list(server.files));
             }
@@ -42,11 +47,20 @@ public class DispatcherService {
         return result;
     }
 
-    public FilePiece piece(final LogRequest request) {
+    public FilePiece piece(final LogRequest request, final InputStream jar) {
         final ConfigApp app = findApp(request.app);
         final ConfigServer server = findServer(app, request.host);
-        if (server.host != null) return new ServerService(server.host).piece(request);
+        if (server.host != null) return getService(request.host, jar).piece(request);
         else return new LocalService().piece(request);
+    }
+
+    private synchronized ServerService getService(final String host, final InputStream jar) {
+        ServerService serverService = services.get(host);
+        if (serverService == null) {
+            serverService = new ServerService(host, jar);
+            services.put(host, serverService);
+        }
+        return serverService;
     }
 
     private ConfigApp findApp(String appName) {
