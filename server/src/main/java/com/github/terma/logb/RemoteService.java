@@ -30,8 +30,8 @@ public class RemoteService {
     private final String host;
     private final LogbRemote logbRemote;
 
-    public RemoteService(final ConfigServer server, final InputStream jarInputStream) {
-        final int nodePort = RemoteNodeRunner.safeStart(server, jarInputStream);
+    public RemoteService(final ConfigServer server, final InputStream jar) {
+        final int nodePort = RemoteNodeRunner.safeStart(server, jar);
 
         this.host = server.host;
         try {

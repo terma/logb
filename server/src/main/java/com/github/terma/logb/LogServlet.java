@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.util.Set;
 
 public class LogServlet extends HttpServlet {
 
@@ -57,7 +58,13 @@ public class LogServlet extends HttpServlet {
     }
 
     public static InputStream getNodeJar(HttpServlet httpServlet) {
-        return httpServlet.getServletContext().getResourceAsStream("/WEB-INF/lib/logb-node-0.1-SNAPSHOT.jar");
+        Set<String> libs = httpServlet.getServletContext().getResourcePaths("/WEB-INF/lib/");
+        for (String lib : libs) {
+            if (lib.contains("logb-node")) {
+                return httpServlet.getServletContext().getResourceAsStream(lib);
+            }
+        }
+        throw new IllegalArgumentException("Can't find logb-node jar in " + libs);
     }
 
 }
