@@ -24,30 +24,18 @@ App.controller("GigaSpaceBrowserController", [
 
         $scope.view = undefined;
         $scope.selectedLog = undefined;
-        $scope.selectedAppName = undefined;
         $scope.selectedApp = undefined;
 
-        $scope.$watch("selectedAppName", function () {
+        $scope.selectApp = function (app) {
             $scope.selectedLogName = undefined;
             $scope.selectedLog = undefined;
             var element = document.getElementById("log");
             while (element.firstChild) {
                 element.removeChild(element.firstChild);
             }
-            $scope.selectedApp = findApp($scope.selectedAppName);
+            $scope.selectedApp = app;
             $scope.check();
-        });
-
-        function findApp(name) {
-            if ($scope.apps) {
-                for (var i = 0; i < $scope.apps.length; i++) {
-                    if ($scope.apps[i].name === name) {
-                        return $scope.apps[i];
-                    }
-                }
-            }
-            return undefined;
-        }
+        };
 
         $scope.selectLog = function (log) {
             $scope.view = "log";
@@ -57,13 +45,13 @@ App.controller("GigaSpaceBrowserController", [
         };
 
         $scope.showPrevious = function () {
-            if (!$scope.selectedLog) return;
+            if (!$scope.selectedApp || !$scope.selectedLog) return;
 
             $http({
                 url: "log",
                 method: "POST",
                 data: {
-                    app: $scope.selectedAppName,
+                    app: $scope.selectedApp.name,
                     host: $scope.selectedLog.host,
                     file: $scope.selectedLog.file,
                     start: Math.max($scope.log.start - PIECE_SIZE, 0),
@@ -87,7 +75,7 @@ App.controller("GigaSpaceBrowserController", [
         };
 
         $scope.tailLog = function () {
-            if (!$scope.selectedLog) return;
+            if (!$scope.selectedApp || !$scope.selectedLog) return;
 
             if ($scope.log.start == undefined) {
                 $scope.log.length = 0;
@@ -100,7 +88,7 @@ App.controller("GigaSpaceBrowserController", [
                 url: "log",
                 method: "POST",
                 data: {
-                    app: $scope.selectedAppName,
+                    app: $scope.selectedApp.name,
                     host: $scope.selectedLog.host,
                     file: $scope.selectedLog.file,
                     start: $scope.log.start + $scope.log.length,

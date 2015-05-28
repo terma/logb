@@ -6,29 +6,31 @@
     <script type="text/javascript" src="js/angular.min.js"></script>
     <script type="text/javascript" src="js/engine.js"></script>
 
-    <!--<link rel="stylesheet" href="css/style.css">-->
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 <div ng-show="view == 'logs'">
-    <select ng-model="selectedAppName">
-        <option ng-repeat="app in apps | orderBy : app.name">{{ app.name }}</option>
-    </select>
+    <span ng-repeat="app in apps | orderBy : 'name'">
+        <a ng-click="selectApp(app)" href="javascript:void(0);">{{ app.name }}</a>
+    </span>
 
     <p></p>
 
-    <input type="text" ng-model="filter">
+    <input type="text" ng-model="filter" style="width: 95%">
 
-    <table>
+    <p></p>
+
+    <table ng-show="logs" border="0" cellpadding="5" style="width: 95%">
         <tr>
             <th>Host</th>
             <th>File</th>
             <th>Changed</th>
         </tr>
         <tr ng-repeat="log in logs | orderBy : 'lastModified' : true | filter : filter">
-            <td>{{ log.host }}</td>
+            <td align="center">{{ log.host ? log.host : "N/A" }}</td>
             <td><a href="javascript:void(0);" ng-click="selectLog(log)">{{ log.file }}</a></td>
-            <td>{{ log.lastModifiedDate }}</td>
+            <td align="center">{{ log.lastModifiedDate }}</td>
         </tr>
         <tr ng-show="!logs.length">
             <td colspan="3">No logs</td>

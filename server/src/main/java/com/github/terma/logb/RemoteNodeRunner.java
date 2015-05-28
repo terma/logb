@@ -16,6 +16,7 @@ limitations under the License.
 
 package com.github.terma.logb;
 
+import com.github.terma.logb.config.ConfigServer;
 import com.jcraft.jsch.*;
 
 import java.io.*;
@@ -23,29 +24,36 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class NodeStarter {
+public class RemoteNodeRunner {
 
     private final static Pattern PORT_PATTERN = Pattern.compile("at port (\\d+)");
 
     public static void main(String[] args) throws FileNotFoundException {
-        safeStart("localhost", new FileInputStream("/Users/terma/Projects/logb/node/target/logb-node-0.1-SNAPSHOT.jar"));
+        ConfigServer server = new ConfigServer();
+        server.host = "localhost";
+        safeStart(server, new FileInputStream("/Users/terma/Projects/logb/node/target/logb-node-0.1-SNAPSHOT.jar"));
 
         System.out.println("yspeh!");
     }
 
-    public static int safeStart(final String host, final InputStream jarInputStream) {
+    public static int safeStart(final ConfigServer server, final InputStream jar) {
         try {
-            return start(host, jarInputStream);
+            return start(server, jar);
         } catch (IOException | JSchException | SftpException e) {
-            throw new RuntimeException("Can't start node on host: " + host, e);
+            throw new RuntimeException("Can't start node: " + server, e);
         }
     }
 
-    private static int start(final String host, final InputStream jarInputStream)
+    private static String getPrivateKeyFile(final ConfigServer server) {
+        return server.privateKeyFile == null ? "~/.ssh/id_rsa" : server.privateKeyFile;
+    }
+
+    private static int start(final ConfigServer server, final InputStream jar)
             throws JSchException, SftpException, IOException {
         final JSch jsch = new JSch();
-        jsch.addIdentity("~/.ssh/id_rsa");
-        Session session = jsch.getSession(host);
+
+        jsch.addIdentity(getPrivateKeyFile(server));
+        Session session = jsch.getSession(server.user, server.host);
         final Properties config = new Properties();
         config.setProperty("StrictHostKeyChecking", "no");
         session.setConfig(config);
@@ -55,8 +63,8 @@ public class NodeStarter {
         System.out.println("Copying node data...");
         final ChannelSftp channelSftp = (ChannelSftp) session.openChannel("sftp");
         channelSftp.connect();
-        channelSftp.put(NodeStarter.class.getResourceAsStream("/logb-node.sh"), "logb-node.sh");
-        channelSftp.put(jarInputStream, "logb-node.jar");
+        channelSftp.put(RemoteNodeRunner.class.getResourceAsStream("/logb-node.sh"), "logb-node.sh");
+        channelSftp.put(jar, "logb-node.jar");
         channelSftp.chmod(500, "logb-node.sh");
         channelSftp.disconnect();
 
@@ -79,16 +87,15 @@ public class NodeStarter {
         session.disconnect();
 
         if (exitStatus != 0) {
-            throw new RuntimeException("Can't start node! Host: " + host
+            throw new RuntimeException("Can't start node: " + server
                     + ", exit code: " + exitStatus);
         }
 
         // from last log line get port if present
         final Matcher matcher = PORT_PATTERN.matcher(lastLine);
         if (!matcher.find())
-            throw new RuntimeException("Can't find port of started node in out: " + lastLine + ", host: " + host);
-        final int nodePort = Integer.parseInt(matcher.group(1));
-        return nodePort;
+            throw new RuntimeException("Can't find port of started node in out: " + lastLine + ", node: " + server);
+        return Integer.parseInt(matcher.group(1));
     }
 
 }

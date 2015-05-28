@@ -26,24 +26,23 @@ import java.util.logging.Logger;
 
 public class NodeRunner {
 
-    public static final String NODE_LOGB_SERVICE_NAME = "logb";
+    public static final String NODE_RMI_NAME = "logb";
 
     private static final int RMI_REGISTRY_NODE_PORT = 8998;
-
     private static final Logger LOGGER = Logger.getLogger(NodeRunner.class.getName());
 
     public static void main(String[] args) {
         LOGGER.info("Starting node...");
         try {
-            LogbRemote logbService = (LogbRemote) UnicastRemoteObject.exportObject(new LogbService(), 0);
+            final LogbRemote logbService = (LogbRemote) UnicastRemoteObject.exportObject(new LogbService(), 0);
 
             Registry registry = LocateRegistry.createRegistry(RMI_REGISTRY_NODE_PORT);
-            registry.rebind(NODE_LOGB_SERVICE_NAME, logbService);
+            registry.rebind(NODE_RMI_NAME, logbService);
             LOGGER.info("Node successfully started");
             FileOutputStream fileOutputStream = new FileOutputStream("logb-node.port");
             fileOutputStream.write(String.valueOf(RMI_REGISTRY_NODE_PORT).getBytes());
             fileOutputStream.close();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             LOGGER.log(Level.SEVERE, "Can't start node", e);
             System.exit(1);
         }

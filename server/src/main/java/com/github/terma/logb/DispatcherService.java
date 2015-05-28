@@ -29,7 +29,7 @@ public class DispatcherService {
     public static final DispatcherService INSTANCE = new DispatcherService();
 
     private final Config config = ConfigService.get();
-    private final Map<String, ServerService> services = new HashMap<>();
+    private final Map<String, RemoteService> services = new HashMap<>();
 
     private DispatcherService() {
     }
@@ -39,7 +39,7 @@ public class DispatcherService {
         final List<ListItem> result = new ArrayList<>();
         for (final ConfigServer server : app.servers) {
             if (server.host != null) {
-                result.addAll(getService(server.host, jar).list(server.files));
+                result.addAll(getService(server, jar).list(server.files));
             } else {
                 result.addAll(new LocalService().list(server.files));
             }
@@ -50,17 +50,17 @@ public class DispatcherService {
     public FilePiece piece(final LogRequest request, final InputStream jar) {
         final ConfigApp app = findApp(request.app);
         final ConfigServer server = findServer(app, request.host);
-        if (server.host != null) return getService(request.host, jar).piece(request);
+        if (server.host != null) return getService(server, jar).piece(request);
         else return new LocalService().piece(request);
     }
 
-    private synchronized ServerService getService(final String host, final InputStream jar) {
-        ServerService serverService = services.get(host);
-        if (serverService == null) {
-            serverService = new ServerService(host, jar);
-            services.put(host, serverService);
+    private synchronized RemoteService getService(final ConfigServer server, final InputStream jar) {
+        RemoteService remoteService = services.get(server.host);
+        if (remoteService == null) {
+            remoteService = new RemoteService(server, jar);
+            services.put(server.host, remoteService);
         }
-        return serverService;
+        return remoteService;
     }
 
     private ConfigApp findApp(String appName) {
