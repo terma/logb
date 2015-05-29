@@ -56,7 +56,7 @@ public class ListServlet extends HttpServlet {
         } catch (final Throwable exception) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             writer.append(ERROR_DELIMITER).append('\n');
-            writer.append(gson.toJson(exception));
+            writer.append(gson.toJson(new JsonException(exception)));
         }
         LOGGER.info("Finish request");
     }
