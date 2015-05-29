@@ -22,11 +22,13 @@ public class FilePiece implements Serializable {
 
     public final long start;
     public final long length;
+    public final long lastModified;
     public final String content;
 
-    public FilePiece(long start, long length, String s) {
+    public FilePiece(long start, long length, long lastModified, String s) {
         this.start = start;
         this.length = length;
+        this.lastModified = lastModified;
         this.content = s;
     }
 
@@ -35,6 +37,7 @@ public class FilePiece implements Serializable {
         return "FilePiece{" +
                 "start=" + start +
                 ", length=" + length +
+                ", lastModified=" + lastModified +
                 ", content='" + content + '\'' +
                 '}';
     }
@@ -48,6 +51,7 @@ public class FilePiece implements Serializable {
 
         if (length != filePiece.length) return false;
         if (start != filePiece.start) return false;
+        if (lastModified != filePiece.lastModified) return false;
         if (!content.equals(filePiece.content)) return false;
 
         return true;
@@ -57,6 +61,7 @@ public class FilePiece implements Serializable {
     public int hashCode() {
         int result = (int) (start ^ (start >>> 32));
         result = 31 * result + (int) (length ^ (length >>> 32));
+        result = 31 * result + (int) (lastModified ^ (lastModified >>> 32));
         result = 31 * result + content.hashCode();
         return result;
     }

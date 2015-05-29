@@ -16,6 +16,29 @@
 
 var App = angular.module("App", []);
 
+App.filter("humanSize", function () {
+    return function (value) {
+        var oneMb = 1024 * 1024;
+        var oneGb = oneMb * 1024;
+        if (value > oneGb) {
+            return (value / oneGb).toFixed(0) + "g";
+        } else if (value > oneMb) {
+            return (value / oneMb).toFixed(0) + "m";
+        } else if (value > 1024) {
+            return (value / 1024).toFixed(0) + "k";
+        } else {
+            return value + "b";
+        }
+    };
+});
+
+App.filter("humanDate", function () {
+    return function (value) {
+        //return new Date(parseInt(value)).toGMTString();
+        return new Date(parseInt(value)).toLocaleString();
+    };
+});
+
 App.controller("GigaSpaceBrowserController", [
     "$scope", "$http", "$interval",
     function ($scope, $http, $interval) {
@@ -26,22 +49,27 @@ App.controller("GigaSpaceBrowserController", [
         $scope.selectedLog = undefined;
         $scope.selectedApp = undefined;
 
-        $scope.selectApp = function (app) {
-            $scope.selectedLogName = undefined;
-            $scope.selectedLog = undefined;
+        function clearLogView() {
             var element = document.getElementById("log");
             while (element.firstChild) {
                 element.removeChild(element.firstChild);
             }
+        }
+
+        $scope.selectApp = function (app) {
+            $scope.selectedLogName = undefined;
+            $scope.selectedLog = undefined;
             $scope.selectedApp = app;
             $scope.check();
         };
 
         $scope.selectLog = function (log) {
+            clearLogView();
+
             $scope.view = "log";
             $scope.selectedLog = log;
             $scope.log = {start: undefined, length: undefined};
-            $scope.tailLog()
+            $scope.tailLog();
         };
 
         $scope.showPrevious = function () {
@@ -132,9 +160,6 @@ App.controller("GigaSpaceBrowserController", [
                     headers: {"Content-Type": "application/json"}
                 }).success(function (res) {
                     $scope.logs = res;
-                    for (var i = 0; i < $scope.logs.length; i++) {
-                        $scope.logs[i].lastModifiedDate = new Date(parseInt($scope.logs[i].lastModified));
-                    }
                 }).error(function (res) {
                     $scope.logs = [{name: "can't connect"}];
                 });
@@ -157,12 +182,3 @@ App.controller("GigaSpaceBrowserController", [
 
         $scope.loadConfig();
     }]);
-
-Array.prototype.mkString = function (delimiter) {
-    var result = "";
-    for (var i = 0; i < this.length; i++) {
-        if (i > 0) result += delimiter;
-        result += this[i];
-    }
-    return result;
-};

@@ -1,6 +1,14 @@
+/* reset */
+
+pre {
+    margin: 0;
+}
+
+/* normal */
+
+
 body {
     margin: 0;
-    padding: 1em;
     font-family: Menlo, Monaco, Consolas, 'Lucida Console', courier, monospace;
     font-size: 11pt;
 }
@@ -8,4 +16,18 @@ body {
 input {
     font-family: inherit;
     font-size: inherit;
+}
+
+#logs-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 1em;
+    background-color: white;
+}
+
+#logs-header .selected {
+    color: black;
+    text-decoration: none;
 }
