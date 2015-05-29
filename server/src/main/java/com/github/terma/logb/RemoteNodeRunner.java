@@ -31,7 +31,7 @@ public class RemoteNodeRunner {
     public static void main(String[] args) throws FileNotFoundException {
         ConfigServer server = new ConfigServer();
         server.host = "localhost";
-        safeStart(server, new FileInputStream("/Users/terma/Projects/logb/node/target/logb-node-0.1-SNAPSHOT.jar"));
+        safeStart(server, new FileInputStream("/Users/terma/Projects/logb/node/target/logb-node-0.2-SNAPSHOT.jar"));
 
         System.out.println("yspeh!");
     }
@@ -63,14 +63,14 @@ public class RemoteNodeRunner {
         System.out.println("Copying node data...");
         final ChannelSftp channelSftp = (ChannelSftp) session.openChannel("sftp");
         channelSftp.connect();
-        channelSftp.put(RemoteNodeRunner.class.getResourceAsStream("/logb-node.sh"), "logb-node.sh");
-        channelSftp.put(jar, "logb-node.jar");
-        channelSftp.chmod(500, "logb-node.sh");
+        channelSftp.put(RemoteNodeRunner.class.getResourceAsStream("/logb-node.sh"), NodeRunner.NODE_FILE + ".sh");
+        channelSftp.put(jar, NodeRunner.NODE_FILE + ".jar");
+        channelSftp.chmod(500, NodeRunner.NODE_FILE + ".sh");
         channelSftp.disconnect();
 
         System.out.println("Executing start node script...");
         ChannelExec channelExec = (ChannelExec) session.openChannel("exec");
-        channelExec.setCommand("./logb-node.sh 2>&1");
+        channelExec.setCommand("./" + NodeRunner.NODE_FILE + ".sh 2>&1");
 
         BufferedReader outReader = new BufferedReader(new InputStreamReader(channelExec.getInputStream()));
 
