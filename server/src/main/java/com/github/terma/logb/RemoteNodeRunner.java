@@ -21,19 +21,21 @@ import com.jcraft.jsch.*;
 
 import java.io.*;
 import java.util.Properties;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RemoteNodeRunner {
 
     private final static Pattern PORT_PATTERN = Pattern.compile("at port (\\d+)");
+    private final static Logger LOGGER = Logger  .getLogger(RemoteNodeRunner.class.getName());
 
     public static void main(String[] args) throws FileNotFoundException {
         ConfigServer server = new ConfigServer();
         server.host = "localhost";
         safeStart(server, new FileInputStream("/Users/terma/Projects/logb/node/target/logb-node-0.2-SNAPSHOT.jar"));
 
-        System.out.println("yspeh!");
+        LOGGER.info("yspeh!");
     }
 
     public static int safeStart(final ConfigServer server, final InputStream jar) {
@@ -60,7 +62,7 @@ public class RemoteNodeRunner {
         session.setConfig("PreferredAuthentications", "publickey");
         session.connect();
 
-        System.out.println("Copying node data...");
+        LOGGER.info("Copying node data...");
         final ChannelSftp channelSftp = (ChannelSftp) session.openChannel("sftp");
         channelSftp.connect();
         channelSftp.put(RemoteNodeRunner.class.getResourceAsStream("/logb-node.sh"), NodeRunner.NODE_FILE + ".sh");
@@ -68,7 +70,7 @@ public class RemoteNodeRunner {
         channelSftp.chmod(500, NodeRunner.NODE_FILE + ".sh");
         channelSftp.disconnect();
 
-        System.out.println("Executing start node script...");
+        LOGGER.info("Executing start node script...");
         ChannelExec channelExec = (ChannelExec) session.openChannel("exec");
         channelExec.setCommand("./" + NodeRunner.NODE_FILE + ".sh 2>&1");
 
@@ -80,7 +82,7 @@ public class RemoteNodeRunner {
         String lastLine = "";
         while ((line = outReader.readLine()) != null) {
             lastLine = line;
-            System.out.println(line);
+            LOGGER.info(line);
         }
         int exitStatus = channelExec.getExitStatus();
         channelExec.disconnect();
