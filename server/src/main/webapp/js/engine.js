@@ -14,10 +14,12 @@
  limitations under the License.
  */
 
-var App = angular.module("App", []);
+var App = angular.module("App", ["ngAnimate"]);
 
 App.filter("humanSize", function () {
     return function (value) {
+        if (value == undefined) return "";
+
         var oneMb = 1024 * 1024;
         var oneGb = oneMb * 1024;
         if (value > oneGb) {
@@ -34,22 +36,25 @@ App.filter("humanSize", function () {
 
 App.filter("humanDate", function () {
     return function (value) {
+        if (value == undefined) return "";
         //return new Date(parseInt(value)).toGMTString();
         return new Date(parseInt(value)).toLocaleString();
     };
 });
 
 App.controller("GigaSpaceBrowserController", [
-    "$scope", "$http", "$interval",
-    function ($scope, $http, $interval) {
+    "$scope", "$http", "$interval" ,"$timeout",
+    function ($scope, $http, $interval, $timeout) {
 
         var PIECE_SIZE = 10000;
 
         $scope.lastUsage = Date.now();
-        $scope.lastUsageTimeout = undefined;
+        $scope.inactive = undefined;
+
         $scope.selectedLog = undefined;
         $scope.selectedApp = undefined;
-        $scope.view = "start";
+
+        $scope.apps = [];
 
         $scope.showLogs = function () {
             $scope.lastUsage = Date.now();
@@ -59,7 +64,6 @@ App.controller("GigaSpaceBrowserController", [
         $scope.selectApp = function (app) {
             $scope.lastUsage = Date.now();
             $scope.selectedApp = app;
-            $scope.view = "";
             $scope.check();
         };
 
@@ -72,9 +76,13 @@ App.controller("GigaSpaceBrowserController", [
 
         $scope.backToActive = function () {
             $scope.lastUsage = Date.now();
-            $scope.view = undefined;
+            $scope.inactive = undefined;
             $scope.check();
         };
+
+        $scope.$watch("selectedApp", fixHeaderContent);
+        $scope.$watch("selectedLog", fixHeaderContent);
+        $scope.$watch("inactive", fixHeaderContent);
 
         $scope.showPrevious = function () {
             if (!$scope.selectedApp || !$scope.selectedLog) return;
@@ -129,7 +137,6 @@ App.controller("GigaSpaceBrowserController", [
                     length: PIECE_SIZE
                 },
                 headers: {"Content-Type": "application/json"}
-                //transformResponse: transformResponse
             }).success(function (res) {
                 if (res.start === $scope.log.start + $scope.log.length) {
                     $scope.log.length += res.length;
@@ -137,11 +144,11 @@ App.controller("GigaSpaceBrowserController", [
                     document.getElementById("log")
                         .appendChild(document.createTextNode(res.content));
 
-                    log.log("new piece of content");
-                    log.log(res);
+                    //log.log("new piece of content");
+                    //log.log(res);
                 } else {
-                    log.log("wrong response");
-                    log.log(res);
+                    //log.log("wrong response");
+                    //log.log(res);
                 }
 
             }).error(function (res) {
@@ -156,7 +163,8 @@ App.controller("GigaSpaceBrowserController", [
             }
 
             if (Date.now() - $scope.lastUsage > 15 * 60 * 1000) {
-                $scope.view = "inactive";
+            //if (Date.now() - $scope.lastUsage > 1000) {
+                $scope.inactive = true;
                 return;
             }
 
@@ -191,3 +199,13 @@ App.controller("GigaSpaceBrowserController", [
 
         $scope.loadConfig();
     }]);
+
+$(window).on("resize", fixHeaderContent);
+
+function fixHeaderContent() {
+    setTimeout(function () {
+        var height = $("#header").height();
+        $("body").css("margin-top", height);
+        log.log("correct content margin: " + height);
+    }, 0);
+}

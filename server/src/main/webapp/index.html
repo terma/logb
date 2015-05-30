@@ -2,54 +2,58 @@
 <html ng-app="App" ng-controller="GigaSpaceBrowserController">
 <head>
     <title>logb {{ config.internal.appVersion }}</title>
+    <script type="text/javascript" src="js/jquery-1.11.3.js"></script>
     <script type="text/javascript" src="js/log.js"></script>
     <script type="text/javascript" src="js/angular.min.js"></script>
+    <script type="text/javascript" src="js/angular-animate.min.js"></script>
     <script type="text/javascript" src="js/engine.js"></script>
 
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<div class="modal" ng-if="view == 'inactive'">
-    <div style="display: table-cell; vertical-align: middle; width: 100%; position: static; text-align: center;">
-        <div style="margin-left: auto; margin-right: auto;">
-            <span>
-                Sir, logs are absolutely cold. Heat up?<br>
-                <a href="javascript:void(0);" ng-click="backToActive()">Yes, please.</a>
-            </span>
-        </div>
+<div id="header">
+    <div ng-if="inactive" id="inactive">
+        Sir, logs are absolutely cold. Heat up?<br>
+        <a href="javascript:void(0);" ng-click="backToActive()">Yes, please.</a>
     </div>
-</div>
 
-<div class="modal" ng-if="view == 'start'">
-    <div style="display: table-cell; vertical-align: middle; width: 100%; position: static; text-align: center;">
-        <div style="margin-left: auto; margin-right: auto;">
-            <ul style="list-style: none; padding: 0;">
-                <li>Logs, Sir</li>
-                <li>&nbsp;</li>
-                <li ng-repeat="app in apps | orderBy : 'name'">
-                    <a ng-click="selectApp(app)"
-                       ng-class="{'selected' : app === selectedApp}"
-                       href="javascript:void(0);">{{
-                        app.name }}</a></li>
-            </ul>
-        </div>
-    </div>
-</div>
-
-<div ng-show="!view && selectedApp && !selectedLog">
-    <div id="logs-header">
+    <div ng-show="selectedApp && !selectedLog" id="logs-header">
         <span ng-repeat="app in apps | orderBy : 'name'">
             <a ng-click="selectApp(app)" ng-class="{'selected' : app === selectedApp}" href="javascript:void(0);">{{
                 app.name }}</a>
         </span>
 
         <p></p>
-
         <input type="text" placeholder="filter keywords" ng-model="filter" style="width: 90%">
     </div>
 
-    <table ng-show="logs" border="0" cellspacing="5" style="margin-top: 5em; width: 100%; padding: 1em;">
+    <div ng-if="selectedLog" id="log-header">
+        <a href="javascript:void(0);" ng-click="showLogs()">Back to Logs</a>
+
+        {{ selectedLog.host }}
+        {{ selectedLog.file }}
+        {{ selectedLog.length | humanSize }}
+        {{ selectedLog.lastModified | humanDate }}
+    </div>
+</div>
+
+<div id="enter" ng-if="!selectedApp">
+    <div style="display: table-cell; vertical-align: middle; width: 100%; position: static; text-align: center;">
+        <div style="margin-left: auto; margin-right: auto;">
+            <ul style="list-style: none; padding: 0;">
+                <li>Logs, Sir</li>
+                <li>&nbsp;</li>
+                <li class="animate-repeat" ng-repeat="app in apps | orderBy : 'name'">
+                    <a ng-click="selectApp(app)" ng-class="{'selected' : app === selectedApp}"
+                       href="javascript:void(0);">{{ app.name }}</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div ng-show="selectedApp && !selectedLog">
+    <table border="0" cellspacing="5" style="width: 100%; padding: 1em;">
         <tr>
             <th>Host</th>
             <th>File</th>
@@ -68,21 +72,12 @@
     </table>
 </div>
 
-<div ng-show="!view" ng-if="selectedLog" style="padding-top: 2em;">
-    <div style="position: fixed; top: 0; left: 0; width: 100%; padding: 1em; background-color: white;">
-        <a href="javascript:void(0);" ng-click="showLogs()">Back to Logs</a>
-
-        {{ selectedLog.host }}
-        {{ selectedLog.file }}
-        {{ selectedLog.length | humanSize }}
-        {{ selectedLog.lastModified | humanDate }}
-    </div>
-
-    <div ng-show="log.start > 0" style="padding: 1em; padding-bottom: 0;">
+<div ng-if="selectedLog">
+    <div ng-show="log.start > 0" style="padding: 1em;">
         <a href="javascript:void(0);" ng-click="showPrevious();">Show Previous</a>
     </div>
 
-    <pre id="log" style="font-family: courier new, courier, monospace; padding: 1em;"></pre>
+    <pre id="log" style="font-family: courier new, courier, monospace; padding: 1em; padding-top: 0;"></pre>
 </div>
 
 </body>
