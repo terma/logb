@@ -45,35 +45,41 @@ App.controller("GigaSpaceBrowserController", [
 
         var PIECE_SIZE = 10000;
 
-        $scope.view = undefined;
+        $scope.lastUsage = Date.now();
+        $scope.lastUsageTimeout = undefined;
         $scope.selectedLog = undefined;
         $scope.selectedApp = undefined;
+        $scope.view = "start";
 
-        function clearLogView() {
-            var element = document.getElementById("log");
-            while (element.firstChild) {
-                element.removeChild(element.firstChild);
-            }
-        }
+        $scope.showLogs = function () {
+            $scope.lastUsage = Date.now();
+            $scope.selectedLog = undefined;
+        };
 
         $scope.selectApp = function (app) {
-            $scope.selectedLogName = undefined;
-            $scope.selectedLog = undefined;
+            $scope.lastUsage = Date.now();
             $scope.selectedApp = app;
+            $scope.view = "";
             $scope.check();
         };
 
         $scope.selectLog = function (log) {
-            clearLogView();
-
-            $scope.view = "log";
+            $scope.lastUsage = Date.now();
             $scope.selectedLog = log;
             $scope.log = {start: undefined, length: undefined};
             $scope.tailLog();
         };
 
+        $scope.backToActive = function () {
+            $scope.lastUsage = Date.now();
+            $scope.view = undefined;
+            $scope.check();
+        };
+
         $scope.showPrevious = function () {
             if (!$scope.selectedApp || !$scope.selectedLog) return;
+
+            $scope.lastUsage = Date.now();
 
             $http({
                 url: "log",
@@ -149,8 +155,12 @@ App.controller("GigaSpaceBrowserController", [
                 return;
             }
 
-            if ($scope.view === "log") {
-                log.log("check - check");
+            if (Date.now() - $scope.lastUsage > 15 * 60 * 1000) {
+                $scope.view = "inactive";
+                return;
+            }
+
+            if ($scope.selectedLog) {
                 $scope.tailLog();
             } else {
                 $http({
@@ -171,7 +181,6 @@ App.controller("GigaSpaceBrowserController", [
                 url: "app",
                 headers: {"Content-Type": "application/json"}
             }).success(function (res) {
-                $scope.view = "logs";
                 $scope.apps = res.apps;
                 $scope.check();
                 $interval($scope.check, 5000);

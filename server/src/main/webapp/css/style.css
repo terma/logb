@@ -6,6 +6,9 @@ pre {
 
 /* normal */
 
+html, body {
+    height: 100%;
+}
 
 body {
     margin: 0;
@@ -18,7 +21,16 @@ input {
     font-size: inherit;
 }
 
+.modal {
+    height: 100%;
+    width: 100%;
+    display: table;
+    position: fixed;
+    background-color: white;
+}
+
 #logs-header {
+    z-index: 1;
     position: fixed;
     top: 0;
     left: 0;

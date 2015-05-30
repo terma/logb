@@ -10,13 +10,43 @@
 </head>
 <body>
 
-<div ng-show="view == 'logs'">
+<div class="modal" ng-if="view == 'inactive'">
+    <div style="display: table-cell; vertical-align: middle; width: 100%; position: static; text-align: center;">
+        <div style="margin-left: auto; margin-right: auto;">
+            <span>
+                Sir, logs are absolutely cold. Heat up?<br>
+                <a href="javascript:void(0);" ng-click="backToActive()">Yes, please.</a>
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="modal" ng-if="view == 'start'">
+    <div style="display: table-cell; vertical-align: middle; width: 100%; position: static; text-align: center;">
+        <div style="margin-left: auto; margin-right: auto;">
+            <ul style="list-style: none; padding: 0;">
+                <li>Logs, Sir</li>
+                <li>&nbsp;</li>
+                <li ng-repeat="app in apps | orderBy : 'name'">
+                    <a ng-click="selectApp(app)"
+                       ng-class="{'selected' : app === selectedApp}"
+                       href="javascript:void(0);">{{
+                        app.name }}</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div ng-show="!view && selectedApp && !selectedLog">
     <div id="logs-header">
         <span ng-repeat="app in apps | orderBy : 'name'">
-            <a ng-click="selectApp(app)" ng-class="{'selected' : app === selectedApp}" href="javascript:void(0);">{{ app.name }}</a>
+            <a ng-click="selectApp(app)" ng-class="{'selected' : app === selectedApp}" href="javascript:void(0);">{{
+                app.name }}</a>
         </span>
+
         <p></p>
-        <input type="text" placeholder="filter keywords" ng-model="filter" style="width: 95%">
+
+        <input type="text" placeholder="filter keywords" ng-model="filter" style="width: 90%">
     </div>
 
     <table ng-show="logs" border="0" cellspacing="5" style="margin-top: 5em; width: 100%; padding: 1em;">
@@ -38,9 +68,9 @@
     </table>
 </div>
 
-<div ng-show="view == 'log'" style="padding-top: 2em;">
+<div ng-show="!view" ng-if="selectedLog" style="padding-top: 2em;">
     <div style="position: fixed; top: 0; left: 0; width: 100%; padding: 1em; background-color: white;">
-        <a href="javascript:void(0);" ng-click="view = 'logs'">Back to Logs</a>
+        <a href="javascript:void(0);" ng-click="showLogs()">Back to Logs</a>
 
         {{ selectedLog.host }}
         {{ selectedLog.file }}
@@ -48,7 +78,7 @@
         {{ selectedLog.lastModified | humanDate }}
     </div>
 
-    <div  ng-show="log.start > 0" style="padding: 1em; padding-bottom: 0;">
+    <div ng-show="log.start > 0" style="padding: 1em; padding-bottom: 0;">
         <a href="javascript:void(0);" ng-click="showPrevious();">Show Previous</a>
     </div>
 
