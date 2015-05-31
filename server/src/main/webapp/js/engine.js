@@ -43,8 +43,8 @@ App.filter("humanDate", function () {
 });
 
 App.controller("GigaSpaceBrowserController", [
-    "$scope", "$http", "$interval" ,"$timeout",
-    function ($scope, $http, $interval, $timeout) {
+    "$scope", "$http", "$timeout",
+    function ($scope, $http, $timeout) {
 
         var PIECE_SIZE = 10000;
 
@@ -71,7 +71,7 @@ App.controller("GigaSpaceBrowserController", [
             $scope.lastUsage = Date.now();
             $scope.selectedLog = log;
             $scope.log = {start: undefined, length: undefined};
-            $scope.tailLog();
+            $scope.check();
         };
 
         $scope.backToActive = function () {
@@ -117,8 +117,6 @@ App.controller("GigaSpaceBrowserController", [
         };
 
         $scope.tailLog = function () {
-            if (!$scope.selectedApp || !$scope.selectedLog) return;
-
             if ($scope.log.start == undefined) {
                 $scope.log.length = 0;
                 $scope.log.start = Math.max(0, $scope.selectedLog.length - PIECE_SIZE);
@@ -138,6 +136,8 @@ App.controller("GigaSpaceBrowserController", [
                 },
                 headers: {"Content-Type": "application/json"}
             }).success(function (res) {
+                scheduleCheck();
+
                 if (res.start === $scope.log.start + $scope.log.length) {
                     $scope.log.length += res.length;
 
@@ -152,19 +152,26 @@ App.controller("GigaSpaceBrowserController", [
                 }
 
             }).error(function (res) {
-                //$scope.logs = [{name: "can't connect"}];
+                scheduleCheck();
             });
         };
+
+        function scheduleCheck() {
+            if ($scope.checkPromise) $timeout.cancel($scope.checkPromise);
+            $scope.checkPromise = $timeout($scope.check, 5000);
+        }
 
         $scope.check = function () {
             if (!$scope.selectedApp) {
                 log.log("check - nothing todo");
+                scheduleCheck();
                 return;
             }
 
             if (Date.now() - $scope.lastUsage > 15 * 60 * 1000) {
-            //if (Date.now() - $scope.lastUsage > 1000) {
+                //if (Date.now() - $scope.lastUsage > 1000) {
                 $scope.inactive = true;
+                scheduleCheck();
                 return;
             }
 
@@ -177,8 +184,10 @@ App.controller("GigaSpaceBrowserController", [
                     data: {app: $scope.selectedApp.name},
                     headers: {"Content-Type": "application/json"}
                 }).success(function (res) {
+                    scheduleCheck();
                     $scope.logs = res;
                 }).error(function (res) {
+                    scheduleCheck();
                     $scope.logs = [{name: "can't connect"}];
                 });
             }
@@ -190,8 +199,7 @@ App.controller("GigaSpaceBrowserController", [
                 headers: {"Content-Type": "application/json"}
             }).success(function (res) {
                 $scope.apps = res.apps;
-                $scope.check();
-                $interval($scope.check, 5000);
+                scheduleCheck();
             }).error(function (res) {
                 alert("OPA!");
             });
@@ -205,7 +213,7 @@ $(window).on("resize", fixHeaderContent);
 function fixHeaderContent() {
     setTimeout(function () {
         var height = $("#header").height();
-        $("body").css("margin-top", height);
+        $("#content").css("margin-top", height);
         log.log("correct content margin: " + height);
     }, 0);
 }

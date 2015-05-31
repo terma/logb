@@ -52,32 +52,34 @@
     </div>
 </div>
 
-<div ng-show="selectedApp && !selectedLog">
-    <table border="0" cellspacing="5" style="width: 100%; padding: 1em;">
-        <tr>
-            <th>Host</th>
-            <th>File</th>
-            <th>Size</th>
-            <th>Changed</th>
-        </tr>
-        <tr ng-repeat="log in logs | orderBy : 'lastModified' : true | filter : filter">
-            <td align="center">{{ ::log.host ? log.host : "N/A" }}</td>
-            <td><a href="javascript:void(0);" ng-click="selectLog(log)">{{ ::log.file }}</a></td>
-            <td align="right">{{ ::log.length | humanSize }}</td>
-            <td align="center">{{ ::log.lastModified | humanDate }}</td>
-        </tr>
-        <tr ng-show="!logs.length">
-            <td colspan="3">No logs</td>
-        </tr>
-    </table>
-</div>
-
-<div ng-if="selectedLog">
-    <div ng-show="log.start > 0" style="padding: 1em;">
-        <a href="javascript:void(0);" ng-click="showPrevious();">Show Previous</a>
+<div id="content">
+    <div ng-show="selectedApp && !selectedLog" style="padding: 1em;">
+        <table border="0" cellspacing="5" style="width: 100%;">
+            <tr>
+                <th>Host</th>
+                <th>File</th>
+                <th>Size</th>
+                <th>Changed</th>
+            </tr>
+            <tr ng-model-options="{debounce: 200}" ng-repeat="log in logs | orderBy : 'lastModified' : true | filter : filter | limitTo : 200">
+                <td align="center">{{ ::log.host ? log.host : "N/A" }}</td>
+                <td><a href="javascript:void(0);" ng-click="selectLog(log)">{{ ::log.file }}</a></td>
+                <td align="right">{{ ::log.length | humanSize }}</td>
+                <td align="center">{{ ::log.lastModified | humanDate }}</td>
+            </tr>
+            <tr ng-show="!logs.length">
+                <td colspan="3">No logs</td>
+            </tr>
+        </table>
     </div>
 
-    <pre id="log" style="font-family: courier new, courier, monospace; padding: 1em; padding-top: 0;"></pre>
+    <div ng-if="selectedLog">
+        <div ng-show="log.start > 0" style="padding: 1em;">
+            <a href="javascript:void(0);" ng-click="showPrevious();">Show Previous</a>
+        </div>
+
+        <pre id="log" style="font-family: courier new, courier, monospace; padding: 1em; padding-top: 0;"></pre>
+    </div>
 </div>
 
 </body>

@@ -6,10 +6,6 @@ pre {
 
 /* normal */
 
-html, body {
-    height: 100%;
-}
-
 body {
     margin: 0;
     font-family: Menlo, Monaco, Consolas, 'Lucida Console', courier, monospace;
