@@ -14,11 +14,7 @@ public class ConfigServer {
 
     @Override
     public String toString() {
-        return "ConfigServer{" +
-                "host='" + host + '\'' +
-                ", privateKeyFile='" + privateKeyFile + '\'' +
-                ", user='" + user + '\'' +
-                '}';
+        return user + "@" + host + (privateKeyFile != null ? " pk: " + privateKeyFile : "");
     }
 
 }

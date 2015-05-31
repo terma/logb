@@ -28,12 +28,12 @@ import java.util.regex.Pattern;
 public class RemoteNodeRunner {
 
     private final static Pattern PORT_PATTERN = Pattern.compile("at port (\\d+)");
-    private final static Logger LOGGER = Logger  .getLogger(RemoteNodeRunner.class.getName());
+    private final static Logger LOGGER = Logger.getLogger(RemoteNodeRunner.class.getName());
 
     public static void main(String[] args) throws FileNotFoundException {
         ConfigServer server = new ConfigServer();
         server.host = "localhost";
-        safeStart(server, new FileInputStream("/Users/terma/Projects/logb/node/target/logb-node-0.2-SNAPSHOT.jar"));
+        safeStart(server, new FileInputStream("/Users/terma/Projects/logb/node/target/logb-node-0.4-SNAPSHOT.jar"));
 
         LOGGER.info("yspeh!");
     }
@@ -62,17 +62,35 @@ public class RemoteNodeRunner {
         session.setConfig("PreferredAuthentications", "publickey");
         session.connect();
 
-        LOGGER.info("Copying node data...");
-        final ChannelSftp channelSftp = (ChannelSftp) session.openChannel("sftp");
-        channelSftp.connect();
-        channelSftp.put(RemoteNodeRunner.class.getResourceAsStream("/logb-node.sh"), NodeRunner.NODE_FILE + ".sh");
-        channelSftp.put(jar, NodeRunner.NODE_FILE + ".jar");
-        channelSftp.chmod(500, NodeRunner.NODE_FILE + ".sh");
-        channelSftp.disconnect();
+        try {
+            LOGGER.info("Create host folder...");
+            final String remoteDir = "logb-node-" + server.host;
+            executeAndLastOut(session, "rm -Rf " + remoteDir + " && mkdir " + remoteDir);
 
-        LOGGER.info("Executing start node script...");
-        ChannelExec channelExec = (ChannelExec) session.openChannel("exec");
-        channelExec.setCommand("./" + NodeRunner.NODE_FILE + ".sh 2>&1");
+            LOGGER.info("Copying node data...");
+            final ChannelSftp channelSftp = (ChannelSftp) session.openChannel("sftp");
+            channelSftp.connect();
+            channelSftp.put(RemoteNodeRunner.class.getResourceAsStream("/logb-node.sh"), remoteDir + "/" + NodeRunner.NODE_FILE + ".sh");
+            channelSftp.put(jar, remoteDir + "/" + NodeRunner.NODE_FILE + ".jar");
+            channelSftp.chmod(500, remoteDir + "/" + NodeRunner.NODE_FILE + ".sh");
+            channelSftp.disconnect();
+
+            LOGGER.info("Executing start node script...");
+            final String lastLine = executeAndLastOut(session, "cd " + remoteDir + " && ./" + NodeRunner.NODE_FILE + ".sh");
+            // from last log line get port if present
+            final Matcher matcher = PORT_PATTERN.matcher(lastLine);
+            if (!matcher.find())
+                throw new RuntimeException("Can't find port of started node in out: " + lastLine + ", node: " + server);
+            return Integer.parseInt(matcher.group(1));
+        } finally {
+            session.disconnect();
+        }
+    }
+
+    private static String executeAndLastOut(final Session session, final String command)
+            throws JSchException, IOException {
+        final ChannelExec channelExec = (ChannelExec) session.openChannel("exec");
+        channelExec.setCommand(command + " 2>&1");
 
         BufferedReader outReader = new BufferedReader(new InputStreamReader(channelExec.getInputStream()));
 
@@ -84,20 +102,14 @@ public class RemoteNodeRunner {
             lastLine = line;
             LOGGER.info(line);
         }
-        int exitStatus = channelExec.getExitStatus();
+        int exitCode = channelExec.getExitStatus();
         channelExec.disconnect();
-        session.disconnect();
 
-        if (exitStatus != 0) {
-            throw new RuntimeException("Can't start node: " + server
-                    + ", exit code: " + exitStatus);
+        if (exitCode != 0) {
+            throw new RuntimeException("Non zero exit code: " + exitCode + " for command: " + command);
         }
 
-        // from last log line get port if present
-        final Matcher matcher = PORT_PATTERN.matcher(lastLine);
-        if (!matcher.find())
-            throw new RuntimeException("Can't find port of started node in out: " + lastLine + ", node: " + server);
-        return Integer.parseInt(matcher.group(1));
+        return lastLine;
     }
 
 }
