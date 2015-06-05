@@ -16,7 +16,9 @@ limitations under the License.
 
 package com.github.terma.logb;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -41,6 +43,43 @@ public class LogbService implements LogbRemote {
         List<ListItem> result = new ArrayList<>();
         for (String file : files) result.addAll(toList(host, new File(file).listFiles()));
         return result;
+    }
+
+    @Override
+    public List<ListItem> list(final LogsRequest request) throws RemoteException {
+        List<ListItem> result = new ArrayList<>();
+        for (String file : request.files) toList(request, new File(file).listFiles(), result);
+        return result;
+    }
+
+    private static void toList(final LogsRequest request, final File[] files, final List<ListItem> result) {
+        for (final File file : files) {
+            if (file.isFile()) {
+                if (checkFileName(request, file) && checkContent(request, file)) result.add(fileToItem(null, file));
+            } else {
+                toList(request, file.listFiles(), result);
+            }
+        }
+    }
+
+    private static boolean checkFileName(final LogsRequest request, final File file) {
+        return request.fileNamePattern == null
+                || file.getPath().toLowerCase().contains(request.fileNamePattern.toLowerCase());
+    }
+
+    private static boolean checkContent(final LogsRequest request, final File file) {
+        if (request.contentPattern == null) return true;
+        if (file.length() > 1024 * 1024) return false; // no more 1Mb for checking
+
+        try (final BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.contains(request.contentPattern)) return true;
+            }
+            return false;
+        } catch (final IOException exception) {
+            throw new RuntimeException(exception);
+        }
     }
 
     private static List<ListItem> toList(final String host, final File[] files) {

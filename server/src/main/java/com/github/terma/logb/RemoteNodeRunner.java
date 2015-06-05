@@ -17,7 +17,7 @@ limitations under the License.
 package com.github.terma.logb;
 
 import com.github.terma.logb.config.ConfigServer;
-import com.jcraft.jsch.*;
+//import com.jcraft.jsch.*;
 
 import java.io.*;
 import java.util.Properties;
@@ -39,77 +39,78 @@ public class RemoteNodeRunner {
     }
 
     public static int safeStart(final ConfigServer server, final InputStream jar) {
-        try {
-            return start(server, jar);
-        } catch (IOException | JSchException | SftpException e) {
-            throw new RuntimeException("Can't start node: " + server, e);
-        }
+//        try {
+//            return start(server, jar);
+//        } catch (IOException | JSchException | SftpException e) {
+//            throw new RuntimeException("Can't start node: " + server, e);
+//        }
+        return 0;
     }
 
     private static String getPrivateKeyFile(final ConfigServer server) {
         return server.privateKeyFile == null ? "~/.ssh/id_rsa" : server.privateKeyFile;
     }
-
-    private static int start(final ConfigServer server, final InputStream jar)
-            throws JSchException, SftpException, IOException {
-        final JSch jsch = new JSch();
-
-        jsch.addIdentity(getPrivateKeyFile(server));
-        Session session = jsch.getSession(server.user, server.host);
-        final Properties config = new Properties();
-        config.setProperty("StrictHostKeyChecking", "no");
-        session.setConfig(config);
-        session.setConfig("PreferredAuthentications", "publickey");
-        session.connect();
-
-        try {
-            LOGGER.info("Create host folder...");
-            final String remoteDir = "logb-node-" + server.host;
-            executeAndLastOut(session, "rm -Rf " + remoteDir + " && mkdir " + remoteDir);
-
-            LOGGER.info("Copying node data...");
-            final ChannelSftp channelSftp = (ChannelSftp) session.openChannel("sftp");
-            channelSftp.connect();
-            channelSftp.put(RemoteNodeRunner.class.getResourceAsStream("/logb-node.sh"), remoteDir + "/" + NodeRunner.NODE_FILE + ".sh");
-            channelSftp.put(jar, remoteDir + "/" + NodeRunner.NODE_FILE + ".jar");
-            channelSftp.chmod(500, remoteDir + "/" + NodeRunner.NODE_FILE + ".sh");
-            channelSftp.disconnect();
-
-            LOGGER.info("Executing start node script...");
-            final String lastLine = executeAndLastOut(session, "cd " + remoteDir + " && ./" + NodeRunner.NODE_FILE + ".sh");
-            // from last log line get port if present
-            final Matcher matcher = PORT_PATTERN.matcher(lastLine);
-            if (!matcher.find())
-                throw new RuntimeException("Can't find port of started node in out: " + lastLine + ", node: " + server);
-            return Integer.parseInt(matcher.group(1));
-        } finally {
-            session.disconnect();
-        }
-    }
-
-    private static String executeAndLastOut(final Session session, final String command)
-            throws JSchException, IOException {
-        final ChannelExec channelExec = (ChannelExec) session.openChannel("exec");
-        channelExec.setCommand(command + " 2>&1");
-
-        BufferedReader outReader = new BufferedReader(new InputStreamReader(channelExec.getInputStream()));
-
-        channelExec.connect();
-
-        String line;
-        String lastLine = "";
-        while ((line = outReader.readLine()) != null) {
-            lastLine = line;
-            LOGGER.info(line);
-        }
-        int exitCode = channelExec.getExitStatus();
-        channelExec.disconnect();
-
-        if (exitCode != 0) {
-            throw new RuntimeException("Non zero exit code: " + exitCode + " for command: " + command);
-        }
-
-        return lastLine;
-    }
+//
+//    private static int start(final ConfigServer server, final InputStream jar)
+//            throws JSchException, SftpException, IOException {
+//        final JSch jsch = new JSch();
+//
+//        jsch.addIdentity(getPrivateKeyFile(server));
+//        Session session = jsch.getSession(server.user, server.host);
+//        final Properties config = new Properties();
+//        config.setProperty("StrictHostKeyChecking", "no");
+//        session.setConfig(config);
+//        session.setConfig("PreferredAuthentications", "publickey");
+//        session.connect();
+//
+//        try {
+//            LOGGER.info("Create host folder...");
+//            final String remoteDir = "logb-node-" + server.host;
+//            executeAndLastOut(session, "rm -Rf " + remoteDir + " && mkdir " + remoteDir);
+//
+//            LOGGER.info("Copying node data...");
+//            final ChannelSftp channelSftp = (ChannelSftp) session.openChannel("sftp");
+//            channelSftp.connect();
+//            channelSftp.put(RemoteNodeRunner.class.getResourceAsStream("/logb-node.sh"), remoteDir + "/" + NodeRunner.NODE_FILE + ".sh");
+//            channelSftp.put(jar, remoteDir + "/" + NodeRunner.NODE_FILE + ".jar");
+//            channelSftp.chmod(500, remoteDir + "/" + NodeRunner.NODE_FILE + ".sh");
+//            channelSftp.disconnect();
+//
+//            LOGGER.info("Executing start node script...");
+//            final String lastLine = executeAndLastOut(session, "cd " + remoteDir + " && ./" + NodeRunner.NODE_FILE + ".sh");
+//            // from last log line get port if present
+//            final Matcher matcher = PORT_PATTERN.matcher(lastLine);
+//            if (!matcher.find())
+//                throw new RuntimeException("Can't find port of started node in out: " + lastLine + ", node: " + server);
+//            return Integer.parseInt(matcher.group(1));
+//        } finally {
+//            session.disconnect();
+//        }
+//    }
+//
+//    private static String executeAndLastOut(final Session session, final String command)
+//            throws JSchException, IOException {
+//        final ChannelExec channelExec = (ChannelExec) session.openChannel("exec");
+//        channelExec.setCommand(command + " 2>&1");
+//
+//        BufferedReader outReader = new BufferedReader(new InputStreamReader(channelExec.getInputStream()));
+//
+//        channelExec.connect();
+//
+//        String line;
+//        String lastLine = "";
+//        while ((line = outReader.readLine()) != null) {
+//            lastLine = line;
+//            LOGGER.info(line);
+//        }
+//        int exitCode = channelExec.getExitStatus();
+//        channelExec.disconnect();
+//
+//        if (exitCode != 0) {
+//            throw new RuntimeException("Non zero exit code: " + exitCode + " for command: " + command);
+//        }
+//
+//        return lastLine;
+//    }
 
 }

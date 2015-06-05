@@ -27,10 +27,15 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.Set;
 
+// todo show list of files with pattern in content -> node-1 and content 12
+
+// todo show lines by pattern in single log
+
+// todo show list of files and lines with pattern in content
+// todo open log in new tab/window
 public class LogServlet extends HttpServlet {
 
     private static final String JSON_CONTENT_TYPE = "application/json";
-
     private static final String ERROR_DELIMITER = "/* --- JSON STREAM --- ERROR DELIMITER --- */";
 
     private final Gson gson = new Gson();
