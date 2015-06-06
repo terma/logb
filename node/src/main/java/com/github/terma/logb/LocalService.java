@@ -21,9 +21,9 @@ import java.util.List;
 
 public class LocalService {
 
-    public List<ListItem> list(final List<String> files) {
+    public List<ListItem> list(final ListRequest request) {
         try {
-            return new LogbService().list(null, files);
+            return new LogbService().list(request);
         } catch (RemoteException e) {
             throw new RuntimeException(e);
         }

@@ -2,7 +2,7 @@ package com.github.terma.logb.node;
 
 import com.github.terma.logb.ListItem;
 import com.github.terma.logb.LogbService;
-import com.github.terma.logb.LogsRequest;
+import com.github.terma.logb.ListRequest;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -43,8 +43,8 @@ public class LogbServicePerformance {
     public void onlyFilesWithSpecificLinesIfContentPatternSpecified() throws Exception {
         assertThat(testDir.toFile().list().length, equalTo(2000));
 
-        LogsRequest request = new LogsRequest();
-        request.contentPattern = "numa";
+        ListRequest request = new ListRequest();
+        request.content = "numa";
         request.files = new ArrayList<>();
         request.files.add(testDir.toFile().getPath());
 

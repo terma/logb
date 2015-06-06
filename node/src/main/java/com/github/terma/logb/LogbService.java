@@ -39,20 +39,13 @@ public class LogbService implements LogbRemote {
     }
 
     @Override
-    public List<ListItem> list(final String host, List<String> files) throws RemoteException {
-        List<ListItem> result = new ArrayList<>();
-        for (String file : files) result.addAll(toList(host, new File(file).listFiles()));
-        return result;
-    }
-
-    @Override
-    public List<ListItem> list(final LogsRequest request) throws RemoteException {
+    public List<ListItem> list(final ListRequest request) throws RemoteException {
         List<ListItem> result = new ArrayList<>();
         for (String file : request.files) toList(request, new File(file).listFiles(), result);
         return result;
     }
 
-    private static void toList(final LogsRequest request, final File[] files, final List<ListItem> result) {
+    private static void toList(final ListRequest request, final File[] files, final List<ListItem> result) {
         for (final File file : files) {
             if (file.isFile()) {
                 if (checkFileName(request, file) && checkContent(request, file)) result.add(fileToItem(null, file));
@@ -62,19 +55,19 @@ public class LogbService implements LogbRemote {
         }
     }
 
-    private static boolean checkFileName(final LogsRequest request, final File file) {
-        return request.fileNamePattern == null
-                || file.getPath().toLowerCase().contains(request.fileNamePattern.toLowerCase());
+    private static boolean checkFileName(final ListRequest request, final File file) {
+        return request.fileName == null
+                || file.getPath().toLowerCase().contains(request.fileName.toLowerCase());
     }
 
-    private static boolean checkContent(final LogsRequest request, final File file) {
-        if (request.contentPattern == null) return true;
+    private static boolean checkContent(final ListRequest request, final File file) {
+        if (request.content == null) return true;
         if (file.length() > 1024 * 1024) return false; // no more 1Mb for checking
 
         try (final BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                if (line.contains(request.contentPattern)) return true;
+                if (line.contains(request.content)) return true;
             }
             return false;
         } catch (final IOException exception) {

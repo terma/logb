@@ -2,7 +2,7 @@ package com.github.terma.logb.node;
 
 import com.github.terma.logb.ListItem;
 import com.github.terma.logb.LogbService;
-import com.github.terma.logb.LogsRequest;
+import com.github.terma.logb.ListRequest;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -37,7 +37,7 @@ public class LogbServiceTest {
     public void ifEmptyPatternsReturnsAllFiles() throws Exception {
         FileUtils.fileWrite(new File(testDir.toFile(), "under.txt").getPath(), "?");
 
-        LogsRequest request = new LogsRequest();
+        ListRequest request = new ListRequest();
         request.files = new ArrayList<>();
         request.files.add(testDir.toFile().getPath());
         List<ListItem> result = new LogbService().list(request);
@@ -50,8 +50,8 @@ public class LogbServiceTest {
         FileUtils.fileWrite(new File(testDir.toFile(), "under.txt").getPath(), "?");
         FileUtils.fileWrite(new File(testDir.toFile(), "under-momo.txt").getPath(), "?");
 
-        LogsRequest request = new LogsRequest();
-        request.fileNamePattern = "momo";
+        ListRequest request = new ListRequest();
+        request.fileName = "momo";
         request.files = new ArrayList<>();
         request.files.add(testDir.toFile().getPath() + "/");
         List<ListItem> result = new LogbService().list(request);
@@ -65,8 +65,8 @@ public class LogbServiceTest {
         FileUtils.fileWrite(new File(testDir.toFile(), "under.txt").getPath(), "?");
         FileUtils.fileWrite(new File(testDir.toFile(), "under-momo.txt").getPath(), "?");
 
-        LogsRequest request = new LogsRequest();
-        request.fileNamePattern = "MoMo";
+        ListRequest request = new ListRequest();
+        request.fileName = "MoMo";
         request.files = new ArrayList<>();
         request.files.add(testDir.toFile().getPath() + "/");
         List<ListItem> result = new LogbService().list(request);
@@ -80,8 +80,8 @@ public class LogbServiceTest {
         FileUtils.fileWrite(new File(testDir.toFile(), "numa.txt").getPath(), "-numa-");
         FileUtils.fileWrite(new File(testDir.toFile(), "puma.txt").getPath(), "puma");
 
-        LogsRequest request = new LogsRequest();
-        request.contentPattern = "numa";
+        ListRequest request = new ListRequest();
+        request.content = "numa";
         request.files = new ArrayList<>();
         request.files.add(testDir.toFile().getPath() + "/");
         List<ListItem> result = new LogbService().list(request);

@@ -50,9 +50,11 @@ public class RemoteService {
         }
     }
 
-    public List<ListItem> list(final List<String> files) {
+    public List<ListItem> list(final ListRequest request) {
         try {
-            return logbRemote.list(host, files);
+            List<ListItem> result = logbRemote.list(request);
+            for (ListItem item : result) item.host = host;
+            return result;
         } catch (RemoteException e) {
             throw new RuntimeException(e);
         }

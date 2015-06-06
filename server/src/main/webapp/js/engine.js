@@ -56,6 +56,19 @@ App.controller("GigaSpaceBrowserController", [
 
         $scope.apps = [];
 
+        $scope.parseQuery = function (string) {
+            if (!string) return {app: undefined, fileName: undefined, content: undefined};
+
+            var contentPrefix = "content: ";
+            var contentIndex = string.indexOf(contentPrefix);
+
+            return {
+                app: undefined,
+                fileName: contentIndex < 0 ? string : string.substring(0, contentIndex > 1 ? contentIndex - 1 : 0).realOrNull(),
+                content: contentIndex < 0 ? undefined : string.substring(contentIndex + contentPrefix.length).realOrNull()
+            };
+        };
+
         $scope.showLogs = function () {
             $scope.lastUsage = Date.now();
             $scope.selectedLog = undefined;
@@ -83,6 +96,9 @@ App.controller("GigaSpaceBrowserController", [
         $scope.$watch("selectedApp", fixHeaderContent);
         $scope.$watch("selectedLog", fixHeaderContent);
         $scope.$watch("inactive", fixHeaderContent);
+        $scope.$watch("filter", function () {
+            $scope.check();
+        });
 
         $scope.showPrevious = function () {
             if (!$scope.selectedApp || !$scope.selectedLog) return;
@@ -143,12 +159,7 @@ App.controller("GigaSpaceBrowserController", [
 
                     document.getElementById("log")
                         .appendChild(document.createTextNode(res.content));
-
-                    //log.log("new piece of content");
-                    //log.log(res);
                 } else {
-                    //log.log("wrong response");
-                    //log.log(res);
                 }
 
             }).error(function (res) {
@@ -178,10 +189,13 @@ App.controller("GigaSpaceBrowserController", [
             if ($scope.selectedLog) {
                 $scope.tailLog();
             } else {
+                var request = $scope.parseQuery($scope.filter);
+                request.app = $scope.selectedApp.name;
+
                 $http({
                     url: "list",
                     method: "post",
-                    data: {app: $scope.selectedApp.name},
+                    data: request,
                     headers: {"Content-Type": "application/json"}
                 }).success(function (res) {
                     scheduleCheck();
@@ -216,4 +230,8 @@ function fixHeaderContent() {
         $("#content").css("margin-top", height);
         log.log("correct content margin: " + height);
     }, 0);
+}
+
+String.prototype.realOrNull = function () {
+    return this.length > 0 ? this : undefined;
 }
