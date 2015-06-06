@@ -22,12 +22,16 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class LogbService implements LogbRemote {
 
+    private static final int LIST_MAX_SIZE = 100;
+
     @Override
-    public FilePiece getPiece(LogRequest logRequest) throws RemoteException {
+    public FilePiece getPiece(final LogRequest logRequest) throws RemoteException {
         try {
             Logb logb = new Logb(logRequest.file);
             FilePiece piece = logb.getPiece(logRequest.start, logRequest.length);
@@ -42,6 +46,13 @@ public class LogbService implements LogbRemote {
     public List<ListItem> list(final ListRequest request) throws RemoteException {
         List<ListItem> result = new ArrayList<>();
         for (String file : request.files) toList(request, new File(file).listFiles(), result);
+        Collections.sort(result, new Comparator<ListItem>() {
+            @Override
+            public int compare(ListItem o1, ListItem o2) {
+                return Long.compare(o2.lastModified, o1.lastModified);
+            }
+        });
+        if (result.size() > LIST_MAX_SIZE) result = result.subList(0, LIST_MAX_SIZE);
         return result;
     }
 
