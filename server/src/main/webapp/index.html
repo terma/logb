@@ -25,7 +25,7 @@
         </span>
 
         <p></p>
-        <input type="text" placeholder="filter keywords" ng-model="filter" style="width: 90%">
+        <input ng-model-options="{debounce: 200}" type="text" placeholder="filter keywords" ng-model="filter" style="width: 90%">
     </div>
 
     <div ng-if="selectedLog" id="log-header">
@@ -61,7 +61,7 @@
                 <th>Size</th>
                 <th>Changed</th>
             </tr>
-            <tr ng-model-options="{debounce: 200}" ng-repeat="log in logs | orderBy : 'lastModified' : true | filter : filter | limitTo : 200">
+            <tr ng-repeat="log in logs">
                 <td align="center">{{ ::log.host ? log.host : "N/A" }}</td>
                 <td><a href="javascript:void(0);" ng-click="selectLog(log)">{{ ::log.file }}</a></td>
                 <td align="right">{{ ::log.length | humanSize }}</td>

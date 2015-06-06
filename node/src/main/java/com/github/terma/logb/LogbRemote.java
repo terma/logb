@@ -24,5 +24,6 @@ public interface LogbRemote extends Remote {
 
     FilePiece getPiece(LogRequest logRequest) throws RemoteException;
 
-    List<ListItem> list(String host, List<String> files) throws RemoteException;
+    List<ListItem> list(ListRequest request) throws RemoteException;
+
 }

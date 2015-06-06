@@ -16,16 +16,22 @@ limitations under the License.
 
 package com.github.terma.logb;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class LogbService implements LogbRemote {
 
+    private static final int LIST_MAX_SIZE = 100;
+
     @Override
-    public FilePiece getPiece(LogRequest logRequest) throws RemoteException {
+    public FilePiece getPiece(final LogRequest logRequest) throws RemoteException {
         try {
             Logb logb = new Logb(logRequest.file);
             FilePiece piece = logb.getPiece(logRequest.start, logRequest.length);
@@ -37,10 +43,47 @@ public class LogbService implements LogbRemote {
     }
 
     @Override
-    public List<ListItem> list(final String host, List<String> files) throws RemoteException {
+    public List<ListItem> list(final ListRequest request) throws RemoteException {
         List<ListItem> result = new ArrayList<>();
-        for (String file : files) result.addAll(toList(host, new File(file).listFiles()));
+        for (String file : request.files) toList(request, new File(file).listFiles(), result);
+        Collections.sort(result, new Comparator<ListItem>() {
+            @Override
+            public int compare(ListItem o1, ListItem o2) {
+                return Long.compare(o2.lastModified, o1.lastModified);
+            }
+        });
+        if (result.size() > LIST_MAX_SIZE) result = result.subList(0, LIST_MAX_SIZE);
         return result;
+    }
+
+    private static void toList(final ListRequest request, final File[] files, final List<ListItem> result) {
+        for (final File file : files) {
+            if (file.isFile()) {
+                if (checkFileName(request, file) && checkContent(request, file)) result.add(fileToItem(null, file));
+            } else {
+                toList(request, file.listFiles(), result);
+            }
+        }
+    }
+
+    private static boolean checkFileName(final ListRequest request, final File file) {
+        return request.fileName == null
+                || file.getPath().toLowerCase().contains(request.fileName.toLowerCase());
+    }
+
+    private static boolean checkContent(final ListRequest request, final File file) {
+        if (request.content == null) return true;
+        if (file.length() > 1024 * 1024) return false; // no more 1Mb for checking
+
+        try (final BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.contains(request.content)) return true;
+            }
+            return false;
+        } catch (final IOException exception) {
+            throw new RuntimeException(exception);
+        }
     }
 
     private static List<ListItem> toList(final String host, final File[] files) {

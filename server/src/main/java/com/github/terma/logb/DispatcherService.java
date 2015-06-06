@@ -34,14 +34,15 @@ public class DispatcherService {
     private DispatcherService() {
     }
 
-    public List<ListItem> list(final String appName, final InputStream jar) {
-        final ConfigApp app = findApp(appName);
+    public List<ListItem> list(final ListRequest request, final InputStream jar) {
+        final ConfigApp app = findApp(request.app);
         final List<ListItem> result = new ArrayList<>();
         for (final ConfigServer server : app.servers) {
+            request.files = server.files;
             if (server.host != null) {
-                result.addAll(getService(server, jar).list(server.files));
+                result.addAll(getService(server, jar).list(request));
             } else {
-                result.addAll(new LocalService().list(server.files));
+                result.addAll(new LocalService().list(request));
             }
         }
         return result;
