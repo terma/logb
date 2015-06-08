@@ -4,7 +4,7 @@
 
     <groupId>com.github.terma</groupId>
     <artifactId>logb</artifactId>
-    <version>0.4-SNAPSHOT</version>
+    <version>0.4</version>
 
     <packaging>pom</packaging>
 
@@ -49,7 +49,7 @@
     <scm>
         <developerConnection>scm:git:https://github.com/terma/logb.git</developerConnection>
         <connection>scm:git:https://github.com/terma/logb.git</connection>
-        <tag>HEAD</tag>
+        <tag>logb-0.4</tag>
     </scm>
 
 </project>
