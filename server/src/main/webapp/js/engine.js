@@ -14,7 +14,19 @@
  limitations under the License.
  */
 
-var App = angular.module("App", ["ngAnimate"]);
+var App = angular.module("App", ["ngAnimate", "ngRoute"]);
+
+App.config(function ($routeProvider) {
+    $routeProvider.
+        when("/tail/:app/:host?/:file*", {
+            templateUrl: "tail.html",
+            controller: "TailController"
+        })
+        .otherwise({
+            templateUrl: "ls.html",
+            controller: "LsController"
+        });
+});
 
 App.filter("humanSize", function () {
     return function (value) {
@@ -42,16 +54,13 @@ App.filter("humanDate", function () {
     };
 });
 
-App.controller("GigaSpaceBrowserController", [
-    "$scope", "$http", "$timeout",
-    function ($scope, $http, $timeout) {
-
-        var PIECE_SIZE = 10000;
+App.controller("LsController", [
+    "$scope", "$http", "$timeout", "$routeParams",
+    function ($scope, $http, $timeout, $routeParams) {
 
         $scope.lastUsage = Date.now();
         $scope.inactive = undefined;
 
-        $scope.selectedLog = undefined;
         $scope.selectedApp = undefined;
 
         $scope.apps = [];
@@ -62,11 +71,22 @@ App.controller("GigaSpaceBrowserController", [
             var contentPrefix = "content: ";
             var contentIndex = string.indexOf(contentPrefix);
 
-            return {
-                app: undefined,
-                fileName: contentIndex < 0 ? string : string.substring(0, contentIndex > 1 ? contentIndex - 1 : 0).realOrNull(),
-                content: contentIndex < 0 ? undefined : string.substring(contentIndex + contentPrefix.length).realOrNull()
-            };
+            var file = contentIndex < 0 ? string : string.substring(0, contentIndex > 1 ? contentIndex - 1 : 0).realOrNull();
+            var content = contentIndex < 0 ? undefined : string.substring(contentIndex + contentPrefix.length).realOrNull();
+
+            function parse(string) {
+                if (!string) return undefined;
+
+                var regexPrefix = "regex: ";
+                var regexIndex = string.indexOf(regexPrefix);
+                if (regexIndex > -1) return {type: "regex", value: string.substring(regexPrefix.length)};
+                else return {type: "plain", value: string};
+            }
+
+            file = parse(file);
+            content = parse(content);
+
+            return {app: undefined, file: file, content: content};
         };
 
         $scope.showLogs = function () {
@@ -80,13 +100,6 @@ App.controller("GigaSpaceBrowserController", [
             $scope.check();
         };
 
-        $scope.selectLog = function (log) {
-            $scope.lastUsage = Date.now();
-            $scope.selectedLog = log;
-            $scope.log = {start: undefined, length: undefined};
-            $scope.check();
-        };
-
         $scope.backToActive = function () {
             $scope.lastUsage = Date.now();
             $scope.inactive = undefined;
@@ -94,78 +107,10 @@ App.controller("GigaSpaceBrowserController", [
         };
 
         $scope.$watch("selectedApp", fixHeaderContent);
-        $scope.$watch("selectedLog", fixHeaderContent);
         $scope.$watch("inactive", fixHeaderContent);
         $scope.$watch("filter", function () {
             $scope.check();
         });
-
-        $scope.showPrevious = function () {
-            if (!$scope.selectedApp || !$scope.selectedLog) return;
-
-            $scope.lastUsage = Date.now();
-
-            $http({
-                url: "log",
-                method: "POST",
-                data: {
-                    app: $scope.selectedApp.name,
-                    host: $scope.selectedLog.host,
-                    file: $scope.selectedLog.file,
-                    start: Math.max($scope.log.start - PIECE_SIZE, 0),
-                    length: $scope.log.start
-                },
-                headers: {"Content-Type": "application/json"}
-                //transformResponse: transformResponse
-            }).success(function (res) {
-                $scope.log.start = res.start;
-                $scope.log.length += res.length;
-
-                var parent = document.getElementById("log");
-                parent.insertBefore(document.createTextNode(res.content), parent.firstChild);
-
-                log.log("new piece of content");
-                log.log(res);
-
-            }).error(function (res) {
-                //$scope.logs = [{name: "can't connect"}];
-            });
-        };
-
-        $scope.tailLog = function () {
-            if ($scope.log.start == undefined) {
-                $scope.log.length = 0;
-                $scope.log.start = Math.max(0, $scope.selectedLog.length - PIECE_SIZE);
-                log.log("init log");
-                log.log($scope.log);
-            }
-
-            $http({
-                url: "log",
-                method: "POST",
-                data: {
-                    app: $scope.selectedApp.name,
-                    host: $scope.selectedLog.host,
-                    file: $scope.selectedLog.file,
-                    start: $scope.log.start + $scope.log.length,
-                    length: PIECE_SIZE
-                },
-                headers: {"Content-Type": "application/json"}
-            }).success(function (res) {
-                scheduleCheck();
-
-                if (res.start === $scope.log.start + $scope.log.length) {
-                    $scope.log.length += res.length;
-
-                    document.getElementById("log")
-                        .appendChild(document.createTextNode(res.content));
-                } else {
-                }
-
-            }).error(function (res) {
-                scheduleCheck();
-            });
-        };
 
         function scheduleCheck() {
             if ($scope.checkPromise) $timeout.cancel($scope.checkPromise);
@@ -186,25 +131,21 @@ App.controller("GigaSpaceBrowserController", [
                 return;
             }
 
-            if ($scope.selectedLog) {
-                $scope.tailLog();
-            } else {
-                var request = $scope.parseQuery($scope.filter);
-                request.app = $scope.selectedApp.name;
+            var request = $scope.parseQuery($scope.filter);
+            request.app = $scope.selectedApp.name;
 
-                $http({
-                    url: "list",
-                    method: "post",
-                    data: request,
-                    headers: {"Content-Type": "application/json"}
-                }).success(function (res) {
-                    scheduleCheck();
-                    $scope.logs = res;
-                }).error(function (res) {
-                    scheduleCheck();
-                    $scope.logs = [{name: "can't connect"}];
-                });
-            }
+            $http({
+                url: "list",
+                method: "post",
+                data: request,
+                headers: {"Content-Type": "application/json"}
+            }).success(function (res) {
+                scheduleCheck();
+                $scope.logs = res;
+            }).error(function (res) {
+                scheduleCheck();
+                $scope.logs = [{name: "can't connect"}];
+            });
         };
 
         $scope.loadConfig = function () {
@@ -220,6 +161,141 @@ App.controller("GigaSpaceBrowserController", [
         };
 
         $scope.loadConfig();
+    }]);
+
+App.controller("TailController", [
+    "$scope", "$http", "$timeout", "$routeParams",
+    function ($scope, $http, $timeout, $routeParams) {
+        $scope.log = {
+            app: $routeParams.app,
+            host: $routeParams.host,
+            file: $routeParams.file
+        };
+
+        $scope.viewport = {
+            start: undefined,
+            length: undefined
+        };
+
+        console.log("tail init...");
+        console.log($scope.selectedApp);
+        console.log($scope.selectedLog);
+
+        var PIECE_SIZE = 10000;
+
+        $scope.lastUsage = Date.now();
+        $scope.inactive = undefined;
+
+        $scope.parseQuery = function (string) {
+            if (!string) return {app: undefined, fileName: undefined, content: undefined};
+
+            var contentPrefix = "content: ";
+            var contentIndex = string.indexOf(contentPrefix);
+
+            var file = contentIndex < 0 ? string : string.substring(0, contentIndex > 1 ? contentIndex - 1 : 0).realOrNull();
+            var content = contentIndex < 0 ? undefined : string.substring(contentIndex + contentPrefix.length).realOrNull();
+
+            function parse(string) {
+                if (!string) return undefined;
+
+                var regexPrefix = "regex: ";
+                var regexIndex = string.indexOf(regexPrefix);
+                if (regexIndex > -1) return {type: "regex", value: string.substring(regexPrefix.length)};
+                else return {type: "plain", value: string};
+            }
+
+            file = parse(file);
+            content = parse(content);
+
+            return {app: undefined, file: file, content: content};
+        };
+
+        $scope.backToActive = function () {
+            $scope.lastUsage = Date.now();
+            $scope.inactive = undefined;
+            $scope.check();
+        };
+
+        $scope.$watch("inactive", fixHeaderContent);
+
+        $scope.showPrevious = function () {
+            $scope.lastUsage = Date.now();
+
+            $http({
+                url: "log",
+                method: "POST",
+                data: {
+                    app: $scope.log.app,
+                    host: $scope.log.host,
+                    file: $scope.log.file,
+                    start: Math.max($scope.viewport.start - PIECE_SIZE, 0),
+                    length: $scope.viewport.start
+                },
+                headers: {"Content-Type": "application/json"}
+                //transformResponse: transformResponse
+            }).success(function (res) {
+                $scope.viewport.start = res.start;
+                $scope.viewport.length += res.length;
+
+                var parent = document.getElementById("log");
+                parent.insertBefore(document.createTextNode(res.content), parent.firstChild);
+
+                log.log("new piece of content");
+                log.log(res);
+
+            }).error(function (res) {
+                //$scope.logs = [{name: "can't connect"}];
+            });
+        };
+
+        $scope.tailLog = function () {
+            $http({
+                url: "log",
+                method: "POST",
+                data: {
+                    app: $scope.log.app,
+                    host: $scope.log.host,
+                    file: $scope.log.file,
+                    start: $scope.viewport.start ? $scope.viewport.start + $scope.viewport.length : undefined,
+                    length: PIECE_SIZE
+                },
+                headers: {"Content-Type": "application/json"}
+            }).success(function (res) {
+                scheduleCheck();
+
+                $scope.log.length = res.length;
+                $scope.log.lastModified = res.lastModified;
+                if (!$scope.viewport.start) $scope.viewport.start = res.start;
+                if (!$scope.viewport.length) $scope.viewport.length = res.content.length;
+                else $scope.viewport.length += res.content.length;
+
+                console.log($scope.viewport);
+
+                var parent = document.getElementById("log");
+                parent.appendChild(document.createTextNode(res.content));
+
+            }).error(function (res) {
+                scheduleCheck();
+            });
+        };
+
+        function scheduleCheck() {
+            if ($scope.checkPromise) $timeout.cancel($scope.checkPromise);
+            $scope.checkPromise = $timeout($scope.check, 5000);
+        }
+
+        $scope.check = function () {
+            if (Date.now() - $scope.lastUsage > 15 * 60 * 1000) {
+                //if (Date.now() - $scope.lastUsage > 1000) {
+                $scope.inactive = true;
+                scheduleCheck();
+                return;
+            }
+
+            $scope.tailLog();
+        };
+
+        $scope.tailLog();
     }]);
 
 $(window).on("resize", fixHeaderContent);

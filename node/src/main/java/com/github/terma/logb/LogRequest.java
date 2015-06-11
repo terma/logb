@@ -23,7 +23,7 @@ public class LogRequest implements Serializable {
     public String app;
     public String host;
     public String file;
-    public long start;
+    public Long start;
     public int length;
 
 }

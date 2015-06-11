@@ -67,18 +67,17 @@ public class LogbService implements LogbRemote {
     }
 
     private static boolean checkFileName(final ListRequest request, final File file) {
-        return request.fileName == null
-                || file.getPath().toLowerCase().contains(request.fileName.toLowerCase());
+        return request.file.accept(file.getPath());
     }
 
     private static boolean checkContent(final ListRequest request, final File file) {
-        if (request.content == null) return true;
+        if (file.length() == 0) return request.content.accept("");
         if (file.length() > 1024 * 1024) return false; // no more 1Mb for checking
 
         try (final BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                if (line.contains(request.content)) return true;
+                if (request.content.accept(line)) return true;
             }
             return false;
         } catch (final IOException exception) {

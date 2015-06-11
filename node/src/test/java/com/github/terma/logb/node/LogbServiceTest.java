@@ -3,6 +3,7 @@ package com.github.terma.logb.node;
 import com.github.terma.logb.ListItem;
 import com.github.terma.logb.ListRequest;
 import com.github.terma.logb.LogbService;
+import com.github.terma.logb.criteria.PlainCriteriaRequest;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -51,7 +52,7 @@ public class LogbServiceTest {
         FileUtils.fileWrite(new File(testDir.toFile(), "under-momo.txt").getPath(), "?");
 
         ListRequest request = new ListRequest();
-        request.fileName = "momo";
+        request.file = new PlainCriteriaRequest("momo");
         request.files = new ArrayList<>();
         request.files.add(testDir.toFile().getPath() + "/");
         List<ListItem> result = new LogbService().list(request);
@@ -66,7 +67,7 @@ public class LogbServiceTest {
         FileUtils.fileWrite(new File(testDir.toFile(), "under-momo.txt").getPath(), "?");
 
         ListRequest request = new ListRequest();
-        request.fileName = "MoMo";
+        request.file = new PlainCriteriaRequest("MoMo");
         request.files = new ArrayList<>();
         request.files.add(testDir.toFile().getPath() + "/");
         List<ListItem> result = new LogbService().list(request);
@@ -81,7 +82,7 @@ public class LogbServiceTest {
         FileUtils.fileWrite(new File(testDir.toFile(), "puma.txt").getPath(), "puma");
 
         ListRequest request = new ListRequest();
-        request.content = "numa";
+        request.content = new PlainCriteriaRequest("numa");
         request.files = new ArrayList<>();
         request.files.add(testDir.toFile().getPath() + "/");
         List<ListItem> result = new LogbService().list(request);
@@ -112,6 +113,20 @@ public class LogbServiceTest {
         assertThat(result.get(0).file, equalTo(testDir.toString() + "/c.txt"));
         assertThat(result.get(1).file, equalTo(testDir.toString() + "/a.txt"));
         assertThat(result.get(2).file, equalTo(testDir.toString() + "/b.txt"));
+    }
+
+    @Test
+    public void ifContentFilteringSkipEmptyFiles() throws Exception {
+        File fileB = new File(testDir.toFile(), "b.txt");
+        FileUtils.fileWrite(fileB.getPath(), "");
+
+        ListRequest request = new ListRequest();
+        request.files = new ArrayList<>();
+        request.content = new PlainCriteriaRequest("c");
+        request.files.add(testDir.toFile().getPath());
+        List<ListItem> result = new LogbService().list(request);
+
+        assertThat(result.size(), equalTo(0));
     }
 
     @Test

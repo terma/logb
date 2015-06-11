@@ -44,7 +44,7 @@ public class LogbServicePerformance {
         assertThat(testDir.toFile().list().length, equalTo(2000));
 
         ListRequest request = new ListRequest();
-        request.content = "numa";
+//        request.content = "numa";
         request.files = new ArrayList<>();
         request.files.add(testDir.toFile().getPath());
 

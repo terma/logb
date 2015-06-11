@@ -16,6 +16,7 @@ limitations under the License.
 
 package com.github.terma.logb;
 
+import com.github.terma.logb.server.ListRequestParser;
 import com.google.gson.Gson;
 
 import javax.servlet.ServletException;
@@ -48,7 +49,7 @@ public class ListServlet extends HttpServlet {
         LOGGER.info("Start list request...");
         response.setContentType(JSON_CONTENT_TYPE);
 
-        final ListRequest listRequest = gson.fromJson(RequestUtils.getRequestBody(request), ListRequest.class);
+        final ListRequest listRequest = ListRequestParser.parse(RequestUtils.getRequestBody(request));
 
         final PrintWriter writer = response.getWriter();
         try {

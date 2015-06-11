@@ -37,15 +37,17 @@ public class Logb {
         this(new File(fileAccess));
     }
 
-    public FilePiece getPiece(long start, int length) throws IOException {
+    public FilePiece getPiece(Long start, int length) throws IOException {
 //        final long length = file.length();
 //        if (start >= length) return new FilePiece(start, start, "");
 
-        fileAccess.seek(start);
+        long realStart = start != null ? start : Math.max(0, file.length() - length);
+
+        fileAccess.seek(realStart);
         byte[] buffer = new byte[length];
         int done = fileAccess.read(buffer);
         int realLength = done < 0 ? 0 : done;
-        return new FilePiece(start, realLength, file.lastModified(), new String(buffer, 0, realLength, charset));
+        return new FilePiece(realStart, file.length(), file.lastModified(), new String(buffer, 0, realLength, charset));
     }
 
 //    public List<String> getLines(int lines) throws IOException {
