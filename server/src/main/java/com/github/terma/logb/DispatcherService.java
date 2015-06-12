@@ -38,7 +38,7 @@ public class DispatcherService {
         final ConfigApp app = findApp(request.app);
         final List<ListItem> result = new ArrayList<>();
         for (final ConfigServer server : app.servers) {
-            request.files = server.files;
+            request.files = new ArrayList<>(server.files);
             if (server.host != null) {
                 result.addAll(getService(server, jar).list(request));
             } else {

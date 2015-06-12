@@ -4,10 +4,9 @@
         <a href="javascript:void(0);" ng-click="backToActive()">Yes, please.</a>
     </div>
 
-    <div ng-show="selectedApp && !selectedLog" id="logs-header">
-        <span ng-repeat="app in apps | orderBy : 'name'">
-            <a ng-click="selectApp(app)" ng-class="{'selected' : app === selectedApp}" href="javascript:void(0);">{{
-                app.name }}</a>
+    <div id="logs-header">
+        <span ng-repeat="ap in apps | orderBy : 'name'">
+            <a ng-class="{'selected' : ap === app}" href="#/ls/{{ ::ap.name }}">{{ ap.name }}</a>
         </span>
 
         <p></p>
@@ -16,22 +15,8 @@
     </div>
 </div>
 
-<div id="enter" ng-if="!selectedApp">
-    <div style="display: table-cell; vertical-align: middle; width: 100%; position: static; text-align: center;">
-        <div style="margin-left: auto; margin-right: auto;">
-            <ul style="list-style: none; padding: 0;">
-                <li>Logs, Sir</li>
-                <li>&nbsp;</li>
-                <li class="animate-repeat" ng-repeat="app in apps | orderBy : 'name'">
-                    <a ng-click="selectApp(app)" ng-class="{'selected' : app === selectedApp}"
-                       href="javascript:void(0);">{{ app.name }}</a></li>
-            </ul>
-        </div>
-    </div>
-</div>
-
 <div id="content">
-    <div ng-show="selectedApp" style="padding: 1em;">
+    <div style="padding: 1em;">
         <table border="0" cellspacing="5" style="width: 100%;">
             <tr>
                 <th>Host</th>
@@ -41,7 +26,8 @@
             </tr>
             <tr ng-repeat="log in logs">
                 <td align="center">{{ ::log.host ? log.host : "N/A" }}</td>
-                <td><a target="_blank" href="#tail/{{ ::selectedApp.name }}/{{ ::log.host }}/{{ ::log.file }}">{{ ::log.file }}</a></td>
+                <td><a target="_blank" href="#tail/{{ ::app }}/{{ ::log.host }}/{{ ::log.file }}">{{
+                    ::log.file }}</a></td>
                 <td align="right">{{ ::log.length | humanSize }}</td>
                 <td align="center">{{ ::log.lastModified | humanDate }}</td>
             </tr>

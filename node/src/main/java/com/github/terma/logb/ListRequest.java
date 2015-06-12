@@ -4,13 +4,14 @@ import com.github.terma.logb.criteria.CriteriaRequest;
 import com.github.terma.logb.criteria.TrueCriteriaRequest;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class ListRequest implements Serializable {
 
     public String app;
-    public List<String> files;
+    public ArrayList<String> files;
     public CriteriaRequest file;
     public CriteriaRequest content = new TrueCriteriaRequest();
 

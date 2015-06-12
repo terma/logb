@@ -22,9 +22,13 @@ App.config(function ($routeProvider) {
             templateUrl: "tail.html",
             controller: "TailController"
         })
-        .otherwise({
+        .when("/ls/:app", {
             templateUrl: "ls.html",
             controller: "LsController"
+        })
+        .otherwise({
+            templateUrl: "enter.html",
+            controller: "EnterController"
         });
 });
 
@@ -54,114 +58,107 @@ App.filter("humanDate", function () {
     };
 });
 
-App.controller("LsController", [
-    "$scope", "$http", "$timeout", "$routeParams",
-    function ($scope, $http, $timeout, $routeParams) {
-
-        $scope.lastUsage = Date.now();
-        $scope.inactive = undefined;
-
-        $scope.selectedApp = undefined;
-
-        $scope.apps = [];
-
-        $scope.parseQuery = function (string) {
-            if (!string) return {app: undefined, fileName: undefined, content: undefined};
-
-            var contentPrefix = "content: ";
-            var contentIndex = string.indexOf(contentPrefix);
-
-            var file = contentIndex < 0 ? string : string.substring(0, contentIndex > 1 ? contentIndex - 1 : 0).realOrNull();
-            var content = contentIndex < 0 ? undefined : string.substring(contentIndex + contentPrefix.length).realOrNull();
-
-            function parse(string) {
-                if (!string) return undefined;
-
-                var regexPrefix = "regex: ";
-                var regexIndex = string.indexOf(regexPrefix);
-                if (regexIndex > -1) return {type: "regex", value: string.substring(regexPrefix.length)};
-                else return {type: "plain", value: string};
-            }
-
-            file = parse(file);
-            content = parse(content);
-
-            return {app: undefined, file: file, content: content};
-        };
-
-        $scope.showLogs = function () {
-            $scope.lastUsage = Date.now();
-            $scope.selectedLog = undefined;
-        };
-
-        $scope.selectApp = function (app) {
-            $scope.lastUsage = Date.now();
-            $scope.selectedApp = app;
-            $scope.check();
-        };
-
-        $scope.backToActive = function () {
-            $scope.lastUsage = Date.now();
-            $scope.inactive = undefined;
-            $scope.check();
-        };
-
-        $scope.$watch("selectedApp", fixHeaderContent);
-        $scope.$watch("inactive", fixHeaderContent);
-        $scope.$watch("filter", function () {
-            $scope.check();
-        });
-
-        function scheduleCheck() {
-            if ($scope.checkPromise) $timeout.cancel($scope.checkPromise);
-            $scope.checkPromise = $timeout($scope.check, 5000);
-        }
-
-        $scope.check = function () {
-            if (!$scope.selectedApp) {
-                log.log("check - nothing todo");
-                scheduleCheck();
-                return;
-            }
-
-            if (Date.now() - $scope.lastUsage > 15 * 60 * 1000) {
-                //if (Date.now() - $scope.lastUsage > 1000) {
-                $scope.inactive = true;
-                scheduleCheck();
-                return;
-            }
-
-            var request = $scope.parseQuery($scope.filter);
-            request.app = $scope.selectedApp.name;
-
-            $http({
-                url: "list",
-                method: "post",
-                data: request,
-                headers: {"Content-Type": "application/json"}
-            }).success(function (res) {
-                scheduleCheck();
-                $scope.logs = res;
-            }).error(function (res) {
-                scheduleCheck();
-                $scope.logs = [{name: "can't connect"}];
-            });
-        };
-
-        $scope.loadConfig = function () {
+App.factory("apps", function ($rootScope, $http) {
+    $rootScope.apps = undefined;
+    return {
+        load: function () {
             $http({
                 url: "app",
                 headers: {"Content-Type": "application/json"}
             }).success(function (res) {
-                $scope.apps = res.apps;
-                scheduleCheck();
+                $rootScope.apps = res.apps;
             }).error(function (res) {
                 alert("OPA!");
             });
-        };
+        }
+    }
+});
 
-        $scope.loadConfig();
-    }]);
+App.controller("EnterController", function (apps) {
+    apps.load();
+});
+
+App.controller("LsController", function ($scope, $http, $timeout, $routeParams, apps) {
+    function cancelCheck() {
+        if ($scope.checkPromise) $timeout.cancel($scope.checkPromise);
+    }
+
+    function scheduleCheck() {
+        cancelCheck();
+        $scope.checkPromise = $timeout($scope.check, 5000);
+    }
+
+    $scope.$on("$destroy", cancelCheck);
+
+    apps.load();
+
+    $scope.app = $routeParams.app;
+
+    $scope.lastUsage = Date.now();
+    $scope.inactive = undefined;
+
+    $scope.parseQuery = function (string) {
+        if (!string) return {app: undefined, fileName: undefined, content: undefined};
+
+        var contentPrefix = "content: ";
+        var contentIndex = string.indexOf(contentPrefix);
+
+        var file = contentIndex < 0 ? string : string.substring(0, contentIndex > 1 ? contentIndex - 1 : 0).realOrNull();
+        var content = contentIndex < 0 ? undefined : string.substring(contentIndex + contentPrefix.length).realOrNull();
+
+        function parse(string) {
+            if (!string) return undefined;
+
+            var regexPrefix = "regex: ";
+            var regexIndex = string.indexOf(regexPrefix);
+            if (regexIndex > -1) return {type: "regex", value: string.substring(regexPrefix.length)};
+            else return {type: "plain", value: string};
+        }
+
+        file = parse(file);
+        content = parse(content);
+
+        return {app: undefined, file: file, content: content};
+    };
+
+    $scope.backToActive = function () {
+        $scope.lastUsage = Date.now();
+        $scope.inactive = undefined;
+        $scope.check();
+    };
+
+    $scope.$watch("inactive", fixHeaderContent);
+    $scope.$watch("filter", function () {
+        $scope.check();
+    });
+
+    $scope.check = function () {
+        if (Date.now() - $scope.lastUsage > 15 * 60 * 1000) {
+            //if (Date.now() - $scope.lastUsage > 1000) {
+            $scope.inactive = true;
+            scheduleCheck();
+            return;
+        }
+
+        var request = $scope.parseQuery($scope.filter);
+        request.app = $scope.app;
+
+        $http({
+            url: "list",
+            method: "post",
+            data: request,
+            headers: {"Content-Type": "application/json"}
+        }).success(function (res) {
+            scheduleCheck();
+            $scope.logs = res;
+        }).error(function (res) {
+            scheduleCheck();
+            $scope.logs = [{name: "can't connect"}];
+        });
+    };
+
+    $scope.check();
+});
 
 App.controller("TailController", [
     "$scope", "$http", "$timeout", "$routeParams",
@@ -176,10 +173,6 @@ App.controller("TailController", [
             start: undefined,
             length: undefined
         };
-
-        console.log("tail init...");
-        console.log($scope.selectedApp);
-        console.log($scope.selectedLog);
 
         var PIECE_SIZE = 10000;
 
@@ -256,7 +249,7 @@ App.controller("TailController", [
                     app: $scope.log.app,
                     host: $scope.log.host,
                     file: $scope.log.file,
-                    start: $scope.viewport.start ? $scope.viewport.start + $scope.viewport.length : undefined,
+                    start: $scope.viewport.start != undefined ? $scope.viewport.start + $scope.viewport.length : undefined,
                     length: PIECE_SIZE
                 },
                 headers: {"Content-Type": "application/json"}
@@ -265,8 +258,8 @@ App.controller("TailController", [
 
                 $scope.log.length = res.length;
                 $scope.log.lastModified = res.lastModified;
-                if (!$scope.viewport.start) $scope.viewport.start = res.start;
-                if (!$scope.viewport.length) $scope.viewport.length = res.content.length;
+                if ($scope.viewport.start == undefined) $scope.viewport.start = res.start;
+                if ($scope.viewport.length == undefined) $scope.viewport.length = res.content.length;
                 else $scope.viewport.length += res.content.length;
 
                 console.log($scope.viewport);

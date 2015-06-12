@@ -43,8 +43,8 @@ public class LogbService implements LogbRemote {
     }
 
     @Override
-    public List<ListItem> list(final ListRequest request) throws RemoteException {
-        List<ListItem> result = new ArrayList<>();
+    public ArrayList<ListItem> list(final ListRequest request) throws RemoteException {
+        ArrayList<ListItem> result = new ArrayList<>();
         for (String file : request.files) toList(request, new File(file).listFiles(), result);
         Collections.sort(result, new Comparator<ListItem>() {
             @Override
@@ -52,7 +52,7 @@ public class LogbService implements LogbRemote {
                 return Long.compare(o2.lastModified, o1.lastModified);
             }
         });
-        if (result.size() > LIST_MAX_SIZE) result = result.subList(0, LIST_MAX_SIZE);
+        if (result.size() > LIST_MAX_SIZE) result = new ArrayList<>(result.subList(0, LIST_MAX_SIZE));
         return result;
     }
 

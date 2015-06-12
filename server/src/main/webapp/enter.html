@@ -1,0 +1,12 @@
+<div id="enter">
+    <div style="display: table-cell; vertical-align: middle; width: 100%; position: static; text-align: center;">
+        <div style="margin-left: auto; margin-right: auto;">
+            <ul style="list-style: none; padding: 0;">
+                <li>Logs, Sir</li>
+                <li>&nbsp;</li>
+                <li class="animate-repeat" ng-repeat="app in apps | orderBy : 'name'">
+                    <a href="#/ls/{{ ::app.name }}">{{ ::app.name }}</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
