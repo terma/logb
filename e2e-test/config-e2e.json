@@ -1,0 +1,28 @@
+{
+  "apps": [
+    {
+      "name": "app-local",
+      "servers": [
+        {
+          "files": [
+            "/Users/terma/Projects/logb/e2e-test"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app-remote",
+      "servers": [
+        {
+          "host": "localhost",
+          "files": [
+            "/Users/terma/Projects/logb"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app-without-servers"
+    }
+  ]
+}
