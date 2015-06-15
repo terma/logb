@@ -21,6 +21,7 @@ import com.github.terma.logb.config.ConfigApp;
 import com.github.terma.logb.config.ConfigServer;
 import com.github.terma.logb.config.ConfigService;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.InputStream;
 import java.util.*;
 
@@ -76,6 +77,13 @@ public class DispatcherService {
             if (Objects.equals(server.host, host)) return server;
         }
         throw new IllegalArgumentException("Can't find server: " + host + "!");
+    }
+
+    public void remove(LogRequest request, final InputStream jar) {
+        final ConfigApp app = findApp(request.app);
+        final ConfigServer server = findServer(app, request.host);
+        if (server.host != null) getService(server, jar).remove(request);
+        else new LocalService().remove(request);
     }
 
 }

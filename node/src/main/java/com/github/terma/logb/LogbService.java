@@ -56,6 +56,12 @@ public class LogbService implements LogbRemote {
         return result;
     }
 
+    @Override
+    public void remove(LogRequest request) throws RemoteException {
+        if (!new File(request.file).delete())
+            throw new UnsupportedOperationException("Can't remove file " + request);
+    }
+
     private static void toList(final ListRequest request, final File[] files, final List<ListItem> result) {
         for (final File file : files) {
             if (file.isFile()) {

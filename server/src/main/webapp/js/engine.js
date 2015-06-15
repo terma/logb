@@ -169,6 +169,22 @@ App.controller("TailController", [
             file: $routeParams.file
         };
 
+        $scope.removeFile = function () {
+            if (confirm("Remove file " + $scope.log.file + "?")) {
+                $http({
+                    url: "log",
+                    method: "DELETE",
+                    data: {
+                        app: $scope.log.app,
+                        host: $scope.log.host,
+                        file: $scope.log.file
+                    }
+                }).success(function () {
+                    window.close();
+                });
+            }
+        };
+
         $scope.viewport = {
             start: undefined,
             length: undefined

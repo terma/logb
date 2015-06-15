@@ -37,4 +37,12 @@ public class LocalService {
         }
     }
 
+    public void remove(LogRequest request) {
+        try {
+            new LogbService().remove(request);
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

@@ -9,6 +9,8 @@
         {{ log.file }}
         {{ log.length | humanSize }}
         {{ log.lastModified | humanDate }}
+
+        <a href="javascript:void(0);" ng-click="removeFile();">Remove</a>
     </div>
 </div>
 

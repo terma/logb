@@ -62,6 +62,22 @@ public class LogServlet extends HttpServlet {
         }
     }
 
+    @Override
+    protected void doDelete(final HttpServletRequest request, final HttpServletResponse response)
+            throws ServletException, IOException {
+        final LogRequest logRequest = gson.fromJson(RequestUtils.getRequestBody(request), LogRequest.class);
+        response.setContentType(JSON_CONTENT_TYPE);
+
+        final PrintWriter writer = response.getWriter();
+        try {
+            DispatcherService.INSTANCE.remove(logRequest, getNodeJar(this));
+        } catch (final Throwable exception) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            writer.append(ERROR_DELIMITER).append('\n');
+            writer.append(gson.toJson(new JsonException(exception)));
+        }
+    }
+
     public static InputStream getNodeJar(HttpServlet httpServlet) {
         Set<String> libs = httpServlet.getServletContext().getResourcePaths("/WEB-INF/lib/");
         for (String lib : libs) {

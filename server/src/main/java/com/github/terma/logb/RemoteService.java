@@ -60,4 +60,12 @@ public class RemoteService {
         }
     }
 
+    public void remove(LogRequest request) {
+        try {
+            logbRemote.remove(request);
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }
