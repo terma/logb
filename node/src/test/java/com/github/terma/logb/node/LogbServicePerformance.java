@@ -1,11 +1,12 @@
 package com.github.terma.logb.node;
 
 import com.github.terma.logb.ListItem;
-import com.github.terma.logb.LogbService;
 import com.github.terma.logb.ListRequest;
+import com.github.terma.logb.LogbService;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -17,6 +18,7 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
+@Ignore
 public class LogbServicePerformance {
 
     private Path testDir;
