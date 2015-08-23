@@ -9,28 +9,20 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
+import static com.github.terma.logb.node.CollectionUtils.al;
 import static java.util.Collections.singletonList;
 import static junit.framework.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
-public class EventStreamNodeTest extends TempNode {
+public class EventStreamNodeTest extends TempFile {
 
     private Tagger tagger = new Tagger();
     private EventNodeRequest request = new EventNodeRequest();
     private EventPath path = new EventPath();
     private EventStreamNode node = new EventStreamNode(tagger);
-
-    public static <T> ArrayList<T> al(T... values) {
-        return new ArrayList<>(Arrays.asList(values));
-    }
-
-    public static <T> HashSet<T> hs(T... values) {
-        return new HashSet<>(Arrays.asList(values));
-    }
 
     @Test
     public void getZeroEventsIfNoPathsForRequest() throws IOException {
@@ -101,6 +93,18 @@ public class EventStreamNodeTest extends TempNode {
         List<StreamEvent> events = node.get(request);
         assertEquals(1, events.size());
         assertEquals(0, events.get(0).timestamp);
+    }
+
+    @Test
+    public void getAllEventsIfIncorrectSearch() throws Exception {
+        createFile("a", "T text");
+
+        path.path = testDir.toFile().getAbsolutePath();
+        request.pattern = "(";
+        request.paths.add(path);
+
+        List<StreamEvent> events = node.get(request);
+        assertEquals(1, events.size());
     }
 
     @Test

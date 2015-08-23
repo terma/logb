@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class TempNode {
+public class TempFile {
 
     protected Path testDir;
 
@@ -25,9 +25,10 @@ public class TempNode {
         testDir.toFile().delete();
     }
 
-    protected void createFile(String name, String content) throws Exception {
+    protected File createFile(String name, String content) throws Exception {
         final File file = new File(testDir.toFile(), name);
         FileUtils.fileWrite(file.getPath(), content);
+        return file;
     }
 
     protected void createFile(String name, String content, long lastModification) throws Exception {

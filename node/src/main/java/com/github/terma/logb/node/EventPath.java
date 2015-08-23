@@ -7,6 +7,6 @@ public class EventPath {
     public String path;
     public String timestampPattern;
     public String timestampFormat;
-    public ArrayList<String> tagsPatterns;
+    public ArrayList<String> tagsPatterns = new ArrayList<>();
 
 }
