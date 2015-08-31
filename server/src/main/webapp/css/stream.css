@@ -1,0 +1,52 @@
+body {
+    /*margin: 0;*/
+
+    font-family: Menlo, Monaco, Consolas, 'Lucida Console', courier, monospace;
+    font-size: 10pt;
+    line-height: 19px;
+}
+
+.timestamp-ranges {
+    float: right;
+}
+
+.filter-tags {
+    margin-top: 10px;
+}
+
+.filter-pattern {
+    margin-top: 10px;
+}
+
+.filter-pattern input {
+    width: 98%;
+    font-size: 10pt;
+}
+
+.filter-tags div {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.selected {
+    text-decoration: none;
+    cursor: default;
+    background-color: #F5F5F5;
+    color: black;
+    padding: 5px;
+}
+
+.apps div {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+#stream {
+margin-top: 10px;
+}
+
+.tag {
+    float: right;
+    margin-left: 5px;
+    color: rgba(0, 0, 0, 0.57);
+}

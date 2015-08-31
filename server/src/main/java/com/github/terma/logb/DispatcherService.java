@@ -20,6 +20,9 @@ import com.github.terma.logb.config.Config;
 import com.github.terma.logb.config.ConfigApp;
 import com.github.terma.logb.config.ConfigServer;
 import com.github.terma.logb.config.ConfigService;
+import com.github.terma.logb.node.EventStreamRemote;
+import com.github.terma.logb.node.EventStreamRequest;
+import com.github.terma.logb.server.Pr;
 
 import java.io.InputStream;
 import java.util.*;
@@ -28,14 +31,27 @@ public class DispatcherService {
 
     public static final DispatcherService INSTANCE = new DispatcherService();
 
-    private final Config config = ConfigService.get();
+    public static final Config config = ConfigService.get();
     private final Map<String, RemoteService> services = new HashMap<>();
 
     private DispatcherService() {
     }
 
+    public List<Pr> getEventStreamRemotes(EventStreamRequest request, final InputStream jar) {
+        final ConfigApp app = config.findApp(request.app);
+        final List<Pr> result = new ArrayList<>();
+        for (final ConfigServer server : app.servers) {
+            if (server.host != null) {
+                result.add(new Pr(getService(server, jar).getEventStreamRemote(), server.paths));
+            } else {
+                result.add(new Pr(new LocalService().getEventStreamRemote(), server.paths));
+            }
+        }
+        return result;
+    }
+
     public List<ListItem> list(final ListRequest request, final InputStream jar) {
-        final ConfigApp app = findApp(request.app);
+        final ConfigApp app = config.findApp(request.app);
         final List<ListItem> result = new ArrayList<>();
         for (final ConfigServer server : app.servers) {
             request.files = new ArrayList<>(server.files);
@@ -49,7 +65,7 @@ public class DispatcherService {
     }
 
     public FilePiece piece(final LogRequest request, final InputStream jar) {
-        final ConfigApp app = findApp(request.app);
+        final ConfigApp app = config.findApp(request.app);
         final ConfigServer server = findServer(app, request.host);
         if (server.host != null) return getService(server, jar).piece(request);
         else return new LocalService().piece(request);
@@ -62,13 +78,6 @@ public class DispatcherService {
             services.put(server.host, remoteService);
         }
         return remoteService;
-    }
-
-    private ConfigApp findApp(String appName) {
-        for (ConfigApp app : config.apps) {
-            if (app.name.equals(appName)) return app;
-        }
-        throw new IllegalArgumentException("Can't find app: " + appName + "!");
     }
 
     private ConfigServer findServer(ConfigApp app, String host) {

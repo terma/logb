@@ -16,6 +16,9 @@ limitations under the License.
 
 package com.github.terma.logb;
 
+import com.github.terma.logb.node.EventStreamNode;
+import com.github.terma.logb.node.EventStreamRemote;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.rmi.registry.LocateRegistry;
@@ -27,6 +30,7 @@ import java.util.logging.Logger;
 public class NodeRunner {
 
     public static final String NODE_RMI_NAME = "logb";
+    public static final String EVENT_STREAM = "event-stream";
     public static final String NODE_FILE = "logb-node";
 
     private static final int RMI_REGISTRY_NODE_PORT = 8998;
@@ -36,9 +40,12 @@ public class NodeRunner {
         LOGGER.info("Starting node...");
         try {
             final LogbRemote logbService = (LogbRemote) UnicastRemoteObject.exportObject(new LogbService(), 0);
+            final EventStreamRemote eventStreamRemote = (EventStreamRemote)
+                    UnicastRemoteObject.exportObject(new EventStreamNode(), 0);
 
             Registry registry = LocateRegistry.createRegistry(RMI_REGISTRY_NODE_PORT);
             registry.rebind(NODE_RMI_NAME, logbService);
+            registry.rebind(EVENT_STREAM, eventStreamRemote);
             LOGGER.info("Node successfully started");
             FileOutputStream fileOutputStream = new FileOutputStream(NODE_FILE + ".port");
             fileOutputStream.write(String.valueOf(RMI_REGISTRY_NODE_PORT).getBytes());

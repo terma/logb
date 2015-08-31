@@ -16,10 +16,17 @@ limitations under the License.
 
 package com.github.terma.logb;
 
+import com.github.terma.logb.node.EventStreamNode;
+import com.github.terma.logb.node.EventStreamRemote;
+
 import java.rmi.RemoteException;
 import java.util.List;
 
 public class LocalService {
+
+    public EventStreamRemote getEventStreamRemote() {
+        return new EventStreamNode();
+    }
 
     public List<ListItem> list(final ListRequest request) {
         try {

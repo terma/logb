@@ -14,20 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
  */
 
-package com.github.terma.logb.config;
+package com.github.terma.logb.node.content;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.github.terma.logb.node.EventStreamRequest;
 
-public class Config {
+public class ContentFactory {
 
-    public List<ConfigApp> apps = new ArrayList<>();
-
-    public ConfigApp findApp(String appName) {
-        for (ConfigApp app : apps) {
-            if (app.name.equals(appName)) return app;
+    public static Content get(EventStreamRequest request) {
+        try {
+            return new FilteredContent(request.pattern);
+        } catch (NullPointerException | IllegalArgumentException e) {
+            return new AllContent();
         }
-        throw new IllegalArgumentException("Can't find app: " + appName + "!");
     }
 
 }

@@ -5,6 +5,16 @@
          version="2.5">
 
     <servlet>
+        <servlet-name>stream</servlet-name>
+        <servlet-class>com.github.terma.logb.server.EventStreamServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>tags</servlet-name>
+        <servlet-class>com.github.terma.logb.server.TagsServlet</servlet-class>
+    </servlet>
+
+    <servlet>
         <servlet-name>list</servlet-name>
         <servlet-class>com.github.terma.logb.ListServlet</servlet-class>
     </servlet>
@@ -20,6 +30,16 @@
     </servlet>
 
     <servlet-mapping>
+        <servlet-name>stream</servlet-name>
+        <url-pattern>/stream</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>tags</servlet-name>
+        <url-pattern>/tags</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
         <servlet-name>list</servlet-name>
         <url-pattern>/list</url-pattern>
     </servlet-mapping>
@@ -33,5 +53,9 @@
         <servlet-name>app</servlet-name>
         <url-pattern>/app</url-pattern>
     </servlet-mapping>
+
+    <welcome-file-list>
+        <welcome-file>stream.html</welcome-file>
+    </welcome-file-list>
 
 </web-app>

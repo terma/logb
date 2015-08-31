@@ -14,20 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
  */
 
-package com.github.terma.logb.config;
+package com.github.terma.logb.node.content;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.regex.Pattern;
 
-public class Config {
+public class FilteredContent implements Content {
 
-    public List<ConfigApp> apps = new ArrayList<>();
+    private final Pattern pattern;
 
-    public ConfigApp findApp(String appName) {
-        for (ConfigApp app : apps) {
-            if (app.name.equals(appName)) return app;
-        }
-        throw new IllegalArgumentException("Can't find app: " + appName + "!");
+    public FilteredContent(String pattern) {
+        this.pattern = Pattern.compile(pattern);
     }
 
+    @Override
+    public boolean apply(String line) {
+        return pattern.matcher(line).find();
+    }
 }

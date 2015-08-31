@@ -14,20 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
  */
 
-package com.github.terma.logb.config;
+package com.github.terma.logb.node;
 
+import com.github.terma.logb.StreamEvent;
+
+import java.rmi.Remote;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 
-public class Config {
+public interface EventStreamRemote extends Remote {
 
-    public List<ConfigApp> apps = new ArrayList<>();
+    ArrayList<StreamEvent> get(final EventStreamRequest request, ArrayList<EventStreamPath> paths) throws RemoteException;
 
-    public ConfigApp findApp(String appName) {
-        for (ConfigApp app : apps) {
-            if (app.name.equals(appName)) return app;
-        }
-        throw new IllegalArgumentException("Can't find app: " + appName + "!");
-    }
+    HashSet<String> getTags(ArrayList<EventStreamPath> paths) throws RemoteException;
 
 }

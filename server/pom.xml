@@ -45,6 +45,13 @@
         </dependency>
 
         <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>2.0.2-beta</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
             <version>2.44.0</version>
@@ -60,18 +67,18 @@
                 <version>2.18.1</version>
             </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <version>2.18.1</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>integration-test</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+            <!--<plugin>-->
+                <!--<groupId>org.apache.maven.plugins</groupId>-->
+                <!--<artifactId>maven-failsafe-plugin</artifactId>-->
+                <!--<version>2.18.1</version>-->
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<goals>-->
+                            <!--<goal>integration-test</goal>-->
+                        <!--</goals>-->
+                    <!--</execution>-->
+                <!--</executions>-->
+            <!--</plugin>-->
 
             <plugin>
                 <groupId>org.eclipse.jetty</groupId>
@@ -103,35 +110,35 @@
                     <version>1.9.7</version>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>com.github.searls</groupId>
-                <artifactId>jasmine-maven-plugin</artifactId>
-                <version>1.3.1.5</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>test</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <webDriverClassName>org.openqa.selenium.phantomjs.PhantomJSDriver</webDriverClassName>
-                    <webDriverCapabilities>
-                        <capability>
-                            <name>phantomjs.binary.path</name>
-                            <value>${phantomjs.binary}</value>
-                        </capability>
-                    </webDriverCapabilities>
+            <!--<plugin>-->
+                <!--<groupId>com.github.searls</groupId>-->
+                <!--<artifactId>jasmine-maven-plugin</artifactId>-->
+                <!--<version>1.3.1.5</version>-->
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<goals>-->
+                            <!--<goal>test</goal>-->
+                        <!--</goals>-->
+                    <!--</execution>-->
+                <!--</executions>-->
+                <!--<configuration>-->
+                    <!--<webDriverClassName>org.openqa.selenium.phantomjs.PhantomJSDriver</webDriverClassName>-->
+                    <!--<webDriverCapabilities>-->
+                        <!--<capability>-->
+                            <!--<name>phantomjs.binary.path</name>-->
+                            <!--<value>${phantomjs.binary}</value>-->
+                        <!--</capability>-->
+                    <!--</webDriverCapabilities>-->
 
-                    <jsSrcDir>${basedir}/src/main/webapp/js</jsSrcDir>
+                    <!--<jsSrcDir>${basedir}/src/main/webapp/js</jsSrcDir>-->
 
-                    <preloadSources>
-                        <source>${basedir}/src/main/webapp/js/jquery-1.11.3.js</source>
-                        <source>${basedir}/src/main/webapp/js/angular.min.js</source>
-                        <source>${basedir}/src/test/javascript/angular-mocks.js</source>
-                    </preloadSources>
-                </configuration>
-            </plugin>
+                    <!--<preloadSources>-->
+                        <!--<source>${basedir}/src/main/webapp/js/jquery-1.11.3.js</source>-->
+                        <!--<source>${basedir}/src/main/webapp/js/angular.min.js</source>-->
+                        <!--<source>${basedir}/src/test/javascript/angular-mocks.js</source>-->
+                    <!--</preloadSources>-->
+                <!--</configuration>-->
+            <!--</plugin>-->
         </plugins>
     </build>
 
