@@ -14,20 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
  */
 
-package com.github.terma.logb.config;
+package com.github.terma.logb.node;
 
+import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.List;
 
-public class Config {
+public class EventStreamPath implements Serializable {
 
-    public List<ConfigApp> apps = new ArrayList<>();
-
-    public ConfigApp findApp(String appName) {
-        for (ConfigApp app : apps) {
-            if (app.name.equals(appName)) return app;
-        }
-        throw new IllegalArgumentException("Can't find app: " + appName + "!");
-    }
+    public String path;
+    public String timestampPattern;
+    public String timestampFormat;
+    public ArrayList<String> tagsPatterns = new ArrayList<>();
 
 }

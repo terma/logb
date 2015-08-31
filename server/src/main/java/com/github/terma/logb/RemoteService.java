@@ -17,6 +17,7 @@ limitations under the License.
 package com.github.terma.logb;
 
 import com.github.terma.logb.config.ConfigServer;
+import com.github.terma.logb.node.EventStreamRemote;
 
 import java.io.InputStream;
 import java.rmi.NotBoundException;
@@ -29,6 +30,7 @@ public class RemoteService {
 
     private final String host;
     private final LogbRemote logbRemote;
+    private final EventStreamRemote eventStreamRemote;
 
     public RemoteService(final ConfigServer server, final InputStream jar) {
         final int nodePort = RemoteNodeRunner.safeStart(server, jar);
@@ -37,9 +39,14 @@ public class RemoteService {
         try {
             final Registry registry = LocateRegistry.getRegistry(host, nodePort);
             logbRemote = (LogbRemote) registry.lookup(NodeRunner.NODE_RMI_NAME);
+            eventStreamRemote = (EventStreamRemote) registry.lookup(NodeRunner.EVENT_STREAM);
         } catch (RemoteException | NotBoundException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public EventStreamRemote getEventStreamRemote() {
+        return eventStreamRemote;
     }
 
     public FilePiece piece(final LogRequest logRequest) {

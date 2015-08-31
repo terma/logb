@@ -2,14 +2,13 @@ package com.github.terma.logb.node;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.List;
 
-public class EventNodeRequest implements Serializable {
+public class EventStreamRequest implements Serializable {
 
-    public List<EventPath> paths = new ArrayList<>();
-    public ArrayList<String> tags;
+    public ArrayList<String> tags = new ArrayList<>();
     public long from;
     public long to;
     public String pattern;
+    public String app;
 
 }

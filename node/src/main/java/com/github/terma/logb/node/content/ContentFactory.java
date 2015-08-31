@@ -1,10 +1,10 @@
 package com.github.terma.logb.node.content;
 
-import com.github.terma.logb.node.EventNodeRequest;
+import com.github.terma.logb.node.EventStreamRequest;
 
 public class ContentFactory {
 
-    public static Content get(EventNodeRequest request) {
+    public static Content get(EventStreamRequest request) {
         try {
             return new FilteredContent(request.pattern);
         } catch (NullPointerException | IllegalArgumentException e) {

@@ -19,14 +19,15 @@ import static org.mockito.Mockito.*;
 
 public class EventStreamNodeTest extends TempFile {
 
-    private Tagger tagger = new Tagger();
-    private EventNodeRequest request = new EventNodeRequest();
-    private EventPath path = new EventPath();
+    private RealTagger tagger = new RealTagger();
+    private ArrayList<EventStreamPath> paths = new ArrayList<>();
+    private EventStreamRequest request = new EventStreamRequest();
+    private EventStreamPath path = new EventStreamPath();
     private EventStreamNode node = new EventStreamNode(tagger);
 
     @Test
     public void getZeroEventsIfNoPathsForRequest() throws IOException {
-        List<StreamEvent> events = node.get(request);
+        List<StreamEvent> events = node.get(request, paths);
         assertEquals(new ArrayList<>(), events);
     }
 
@@ -35,9 +36,9 @@ public class EventStreamNodeTest extends TempFile {
         createFile("a", "text");
 
         path.path = testDir.toFile().getAbsolutePath();
-        request.paths.add(path);
+        paths.add(path);
 
-        List<StreamEvent> events = node.get(request);
+        List<StreamEvent> events = node.get(request, paths);
         assertEquals(1, events.size());
     }
 
@@ -47,9 +48,9 @@ public class EventStreamNodeTest extends TempFile {
 
         path.path = testDir.toFile().getAbsolutePath();
         path.timestampFormat = "X";
-        request.paths.add(path);
+        paths.add(path);
 
-        List<StreamEvent> events = node.get(request);
+        List<StreamEvent> events = node.get(request, paths);
         assertEquals(1, events.size());
         assertEquals(0, events.get(0).timestamp);
     }
@@ -60,9 +61,9 @@ public class EventStreamNodeTest extends TempFile {
 
         path.path = testDir.toFile().getAbsolutePath();
         path.timestampPattern = "X";
-        request.paths.add(path);
+        paths.add(path);
 
-        List<StreamEvent> events = node.get(request);
+        List<StreamEvent> events = node.get(request, paths);
         assertEquals(1, events.size());
         assertEquals(0, events.get(0).timestamp);
     }
@@ -74,9 +75,9 @@ public class EventStreamNodeTest extends TempFile {
         path.path = testDir.toFile().getAbsolutePath();
         path.timestampPattern = "(";
         path.timestampFormat = "X";
-        request.paths.add(path);
+        paths.add(path);
 
-        List<StreamEvent> events = node.get(request);
+        List<StreamEvent> events = node.get(request, paths);
         assertEquals(1, events.size());
         assertEquals(0, events.get(0).timestamp);
     }
@@ -88,9 +89,9 @@ public class EventStreamNodeTest extends TempFile {
         path.path = testDir.toFile().getAbsolutePath();
         path.timestampPattern = "T";
         path.timestampFormat = "X";
-        request.paths.add(path);
+        paths.add(path);
 
-        List<StreamEvent> events = node.get(request);
+        List<StreamEvent> events = node.get(request, paths);
         assertEquals(1, events.size());
         assertEquals(0, events.get(0).timestamp);
     }
@@ -101,9 +102,9 @@ public class EventStreamNodeTest extends TempFile {
 
         path.path = testDir.toFile().getAbsolutePath();
         request.pattern = "(";
-        request.paths.add(path);
+        paths.add(path);
 
-        List<StreamEvent> events = node.get(request);
+        List<StreamEvent> events = node.get(request, paths);
         assertEquals(1, events.size());
     }
 
@@ -114,9 +115,9 @@ public class EventStreamNodeTest extends TempFile {
         path.path = testDir.toFile().getAbsolutePath();
         path.timestampPattern = "\\d{4}-\\d{2}-\\d{2}";
         path.timestampFormat = "yyyy-MM-dd";
-        request.paths.add(path);
+        paths.add(path);
 
-        List<StreamEvent> events = node.get(request);
+        List<StreamEvent> events = node.get(request, paths);
         assertEquals(1, events.size());
         assertEquals(
                 DateTimeFormat.forPattern("yyyy-MM-dd").withZoneUTC().parseMillis("2015-05-01"),
@@ -128,18 +129,18 @@ public class EventStreamNodeTest extends TempFile {
         createFile("b", "");
 
         path.path = testDir.toFile().getAbsolutePath();
-        request.paths.add(path);
+        paths.add(path);
 
-        List<StreamEvent> events = node.get(request);
+        List<StreamEvent> events = node.get(request, paths);
         assertEquals(new ArrayList<StreamEvent>(), events);
     }
 
     @Test
     public void getZeroEventsIfPathNotExistent() throws Exception {
         path.path = "/x/x";
-        request.paths.add(path);
+        paths.add(path);
 
-        List<StreamEvent> events = node.get(request);
+        List<StreamEvent> events = node.get(request, paths);
         assertEquals(new ArrayList<StreamEvent>(), events);
     }
 
@@ -159,9 +160,9 @@ public class EventStreamNodeTest extends TempFile {
 
         path.path = testDir.toFile().getAbsolutePath();
         path.tagsPatterns = tagPatterns;
-        request.paths.add(path);
+        paths.add(path);
 
-        List<StreamEvent> events = node.get(request);
+        List<StreamEvent> events = node.get(request, paths);
         assertEquals(4, events.size());
         assertEquals(new HashSet<>(singletonList("A")), events.get(0).tags);
         assertEquals(new HashSet<>(singletonList("A")), events.get(1).tags);
@@ -179,9 +180,9 @@ public class EventStreamNodeTest extends TempFile {
 
         request.tags = al("A");
 
-        request.paths.add(path);
+        paths.add(path);
 
-        List<StreamEvent> events = node.get(request);
+        List<StreamEvent> events = node.get(request, paths);
         assertEquals(1, events.size());
         assertEquals(new HashSet<>(singletonList("A")), events.get(0).tags);
     }
@@ -196,9 +197,9 @@ public class EventStreamNodeTest extends TempFile {
         path.path = testDir.toFile().getAbsolutePath();
         request.from = now.minusHours(1).getMillis();
         request.to = now.plusHours(1).getMillis();
-        request.paths.add(path);
+        paths.add(path);
 
-        List<StreamEvent> events = node.get(request);
+        List<StreamEvent> events = node.get(request, paths);
         assertEquals(1, events.size());
         assertEquals("3", events.get(0).message);
     }
@@ -208,18 +209,18 @@ public class EventStreamNodeTest extends TempFile {
         final DateTime now = DateTime.now();
         final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm").withZoneUTC();
 
-        createFile("A", formatter.print(now) + " message1\n" + formatter.print(now.minusDays(1)) + " message2");
+        createFile("A", formatter.print(now.minusDays(1)) + " message1\n" + formatter.print(now) + " message2");
 
         path.path = testDir.toFile().getAbsolutePath();
         path.timestampFormat = "yyyy-MM-dd HH:mm";
         path.timestampPattern = "(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2})";
         request.from = now.minusHours(1).getMillis();
         request.to = now.plusHours(1).getMillis();
-        request.paths.add(path);
+        paths.add(path);
 
-        List<StreamEvent> events = node.get(request);
+        List<StreamEvent> events = node.get(request, paths);
         assertEquals(1, events.size());
-        assertEquals(formatter.print(now) + " message1", events.get(0).message);
+        assertEquals(formatter.print(now) + " message2", events.get(0).message);
     }
 
     @Test
@@ -228,9 +229,9 @@ public class EventStreamNodeTest extends TempFile {
 
         path.path = testDir.toFile().getAbsolutePath();
         request.pattern = "msg";
-        request.paths.add(path);
+        paths.add(path);
 
-        List<StreamEvent> events = node.get(request);
+        List<StreamEvent> events = node.get(request, paths);
         assertEquals(1, events.size());
         assertEquals("msg1", events.get(0).message);
     }

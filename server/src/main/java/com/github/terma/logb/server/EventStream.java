@@ -1,6 +1,7 @@
 package com.github.terma.logb.server;
 
 import com.github.terma.logb.StreamEvent;
+import com.github.terma.logb.node.EventStreamRequest;
 
 import java.util.ArrayList;
 import java.util.List;

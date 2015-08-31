@@ -3,7 +3,7 @@ package com.github.terma.logb;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
-class JsonException {
+public class JsonException {
 
     public final String exceptionClass;
     public final String message;

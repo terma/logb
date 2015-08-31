@@ -8,6 +8,7 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -18,9 +19,10 @@ import static junit.framework.Assert.assertTrue;
 @Ignore
 public class EventStreamNodePerformance extends TempFile {
 
-    private Tagger tagger = new Tagger();
-    private EventNodeRequest request = new EventNodeRequest();
-    private EventPath path = new EventPath();
+    private final ArrayList<EventStreamPath> paths = new ArrayList<>();
+    private RealTagger tagger = new RealTagger();
+    private EventStreamRequest request = new EventStreamRequest();
+    private EventStreamPath path = new EventStreamPath();
     private EventStreamNode node = new EventStreamNode(tagger);
 
     @Test
@@ -32,11 +34,11 @@ public class EventStreamNodePerformance extends TempFile {
         generateFiles(1, requiredSize);
 
         path.path = testDir.toFile().getAbsolutePath();
-        request.paths.add(path);
+        paths.add(path);
 
         final long start = System.currentTimeMillis();
         for (int t = 0; t < times; t++) {
-            List<StreamEvent> events = node.get(request);
+            List<StreamEvent> events = node.get(request, paths);
             assertTrue(events.size() > 1000);
         }
         final long time = (System.currentTimeMillis() - start) / times;
@@ -58,17 +60,17 @@ public class EventStreamNodePerformance extends TempFile {
         path.timestampFormat = "yyyy-MM-dd HH:mm:ss";
         request.from = now - TimeUnit.MINUTES.toMillis(5);
         request.to = now + TimeUnit.MINUTES.toMillis(5);
-        request.paths.add(path);
+        paths.add(path);
 
         final long start = System.currentTimeMillis();
         for (int t = 0; t < times; t++) {
-            List<StreamEvent> events = node.get(request);
+            List<StreamEvent> events = node.get(request, paths);
             assertTrue("Find zero events!", events.size() > 0);
         }
         final long time = (System.currentTimeMillis() - start) / times;
 
         System.out.println("average time for " + requiredSize + " bytes is " + time + " msec");
-        Assert.assertThat(time, Matchers.lessThan(3500L));
+        Assert.assertThat(time, Matchers.lessThan(500L));
     }
 
     @Test
@@ -82,10 +84,10 @@ public class EventStreamNodePerformance extends TempFile {
         generateFiles(files, messages);
 
         path.path = testDir.toFile().getAbsolutePath();
-        request.paths.add(path);
+        paths.add(path);
 
         for (int t = 0; t < times; t++) {
-            List<StreamEvent> events = node.get(request);
+            List<StreamEvent> events = node.get(request, paths);
             assertEquals(messages * files, events.size());
         }
 
@@ -94,28 +96,29 @@ public class EventStreamNodePerformance extends TempFile {
 
     @Test
     public void manySmallFilesWithTags() throws Exception {
-        long start = System.currentTimeMillis();
-
         int times = 5;
         int files = 1000;
-        int messages = 1024;
+        int requiredSize = DiskSize.toBytes(100, DiskSize.KB);
 
-        generateFiles(files, messages);
+        generateFiles(files, requiredSize);
 
         path.path = testDir.toFile().getAbsolutePath();
         path.tagsPatterns.add("_\\d+_");
-        request.paths.add(path);
+        paths.add(path);
 
+        final long start = System.currentTimeMillis();
         for (int t = 0; t < times; t++) {
-            List<StreamEvent> events = node.get(request);
-            assertEquals(messages * files, events.size());
+            List<StreamEvent> events = node.get(request, paths);
+            assertTrue(events.size() > 0);
 
             for (StreamEvent event : events) {
                 Assert.assertTrue(event.tags.size() > 0);
             }
         }
+        final long time = (System.currentTimeMillis() - start) / times;
 
-        System.out.println("test files: " + files + ", messages: " + messages + " average get events " + (System.currentTimeMillis() - start) / times + " msec");
+        System.out.println("test files: " + files + ", messages: " + requiredSize + " average get events " + time + " msec");
+        Assert.assertThat(time, Matchers.lessThan(2900L));
     }
 
     @Test
@@ -129,11 +132,11 @@ public class EventStreamNodePerformance extends TempFile {
         path.path = testDir.toFile().getAbsolutePath();
         path.timestampPattern = "(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2})";
         path.timestampFormat = "yyyy-MM-dd HH:mm:ss";
-        request.paths.add(path);
+        paths.add(path);
 
         final long start = System.currentTimeMillis();
         for (int t = 0; t < times; t++) {
-            List<StreamEvent> events = node.get(request);
+            List<StreamEvent> events = node.get(request, paths);
             assertEquals(messages * files, events.size());
 
             for (StreamEvent event : events) {
@@ -155,11 +158,11 @@ public class EventStreamNodePerformance extends TempFile {
 
         path.path = testDir.toFile().getAbsolutePath();
         request.pattern = "(index 1)";
-        request.paths.add(path);
+        paths.add(path);
 
         final long start = System.currentTimeMillis();
         for (int t = 0; t < times; t++) {
-            List<StreamEvent> events = node.get(request);
+            List<StreamEvent> events = node.get(request, paths);
             assertTrue(events.size() > 0);
         }
         final long time = System.currentTimeMillis() - start;
@@ -177,11 +180,11 @@ public class EventStreamNodePerformance extends TempFile {
 
         path.path = testDir.toFile().getAbsolutePath();
         request.from = System.currentTimeMillis() + HOURS.toMillis(2);
-        request.paths.add(path);
+        paths.add(path);
 
         final long start = System.currentTimeMillis();
         for (int t = 0; t < times; t++) {
-            List<StreamEvent> events = node.get(request);
+            List<StreamEvent> events = node.get(request, paths);
             assertEquals(0, events.size());
         }
         final long time = System.currentTimeMillis() - start;
